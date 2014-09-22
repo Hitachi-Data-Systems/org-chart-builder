@@ -1,0 +1,392 @@
+import argparse
+import glob
+import os
+import math
+from pptx.dml.color import RGBColor
+from pptx.enum.text import MSO_VERTICAL_ANCHOR
+import re
+from orgchart_parser import OrgParser, PeopleDataKeys
+import sys
+
+__author__ = 'David Oreper'
+from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE
+from pptx.util import Inches, Pt
+from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import MSO_ANCHOR
+
+
+class RectangleBuilder(object):
+    """
+    this class does stuff
+    """
+    def __init__(self, slide, left, top, width, height, rgbFillColor):
+        """
+
+        :param left:
+        :param top:
+        :param width:
+        :param height:
+        :param rgbFillColor:
+        """
+        self.slide = slide
+        self.width = width
+        self.height = height
+        self.top = top
+        self.left = left
+        self.rgbFillColor = rgbFillColor
+        self.rgbTextColor = RGBColor(255, 255, 255)
+        self.brightness = .2
+        self.firstName = None
+        self.lastName = None
+        self.title = None
+        self.consultant = None
+        self.expat = None
+        self.heading = None
+
+    def setRGBTextColor(self, rgbColor):
+        self.rgbTextColor = rgbColor
+
+    def setFirstName(self, firstName):
+        self.firstName = firstName
+
+    def setLastName(self, lastName):
+        self.lastName = lastName
+
+    def setTitle(self, title):
+        self.title = title
+
+    def setIsConsultant(self):
+        self.consultant = True
+
+    def setIsExpat(self):
+        self.expat = True
+
+    def setHeading(self, heading):
+        self.heading = heading
+
+    def setBrightness(self, brightness):
+        self.brightness = brightness
+
+    def _buildShape(self):
+        shape = self.slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, self.left, self.top, self.width, self.height)
+        shape.fill.solid()
+        shape.fill.fore_color.rgb = self.rgbFillColor
+        shape.fill.fore_color.brightness = self.brightness
+        shape.line.color.rgb = self.rgbFillColor
+        return shape
+
+    def addRun(self, textframe, text, size, isBold, isItalic, rgbTextColor=None):
+        paragraph = textframe.paragraphs[0]
+        aRun = paragraph.add_run()
+
+        if not rgbTextColor:
+            rgbTextColor = self.rgbTextColor
+
+        text = "{}\r".format(text.strip())
+        aRun.text = text
+
+        aRun.font.size = Pt(size)
+        aRun.font.bold = isBold
+        aRun.font.italic = isItalic
+        aRun.font.color.rgb = rgbTextColor
+        aRun.alignment = PP_ALIGN.CENTER
+        aRun.font.name = "Arial (Body)"
+
+    def _buildFirstName(self, textFrame):
+        self.addRun(textFrame, self.firstName, 9, True, False)
+
+    def _buildLastName(self, textFrame):
+        self.addRun(textFrame, self.lastName, 7, False, False)
+
+    def _buildTitle(self, textFrame):
+        title = self.title
+        if self.consultant:
+            title = "{} (c)".format(title)
+        self.addRun(textFrame, title, 5, False, True)
+
+    def _buildHeading(self, textFrame):
+        self.addRun(textFrame, self.heading, 8, True, False)
+
+    def build(self):
+        shape = self._buildShape()
+        shape.textframe.vertical_anchor = MSO_ANCHOR.TOP
+
+        if self.heading:
+            self._buildHeading(shape.textframe)
+
+        if self.firstName:
+            self._buildFirstName(shape.textframe)
+
+        if self.lastName:
+            self._buildLastName(shape.textframe)
+
+        if self.title:
+            self._buildTitle(shape.textframe)
+
+class ShapeBuffer:
+    FOREGROUND_WIDTH = Inches(.2)
+    BACKGROUND_WIDTH = Inches(.05)
+    HEIGHT = Inches(.05)
+
+class BackgroundShape:
+    TOP = Inches(1.5)
+    WIDTH = Inches(1.17)
+    HEIGHT = Inches(5.5)
+
+class ForegroundShape:
+    TOP = BackgroundShape.TOP + ShapeBuffer.HEIGHT + Inches(.4)
+    WIDTH = BackgroundShape.WIDTH - (ShapeBuffer.FOREGROUND_WIDTH/2)
+    HEIGHT = Inches(.48)
+
+class ColorPicker:
+    def __init__(self):
+        self.index = 0
+        self.colors = [(RGBColor(245, 227, 226), RGBColor(166, 75, 71)),
+                       (RGBColor(209, 225, 243), RGBColor(42, 94, 142)),
+                       (RGBColor(239, 243, 229), RGBColor(138, 160, 81)),
+                       (RGBColor(227, 235, 244), RGBColor(72, 117, 161)),
+                       (RGBColor(235, 231, 240), RGBColor(116, 96, 140)),
+                       (RGBColor(226, 241, 246), RGBColor(65, 151, 171)),
+                       (RGBColor(253, 238, 226), RGBColor(235, 128, 35))]
+
+    def getBackgroundColor(self):
+        colorIndex = self.index % len(self.colors)
+        return self.colors[colorIndex][0]
+
+    def getForegroundColor(self):
+        colorIndex = self.index % len(self.colors)
+        return self.colors[colorIndex][1]
+
+    def nextColor(self):
+        self.index += 1
+
+class DrawChartSlide:
+    def __init__(self, aPresentation, slideTitle, titleSlide):
+        self.slide = aPresentation.slides.add_slide(titleSlide)
+        shapes = self.slide.shapes
+        shapes.title.text = slideTitle
+        self.colorPicker = ColorPicker()
+
+        self.backgroundShapeLeft = Inches(.1)
+        self.foregroundShapeTop = ForegroundShape.TOP
+        self.foregroundShapeLeft = self.backgroundShapeLeft + ShapeBuffer.FOREGROUND_WIDTH
+        self.foregroundColor = self.colorPicker.getForegroundColor()
+        self.backgroundColor = self.colorPicker.getBackgroundColor()
+
+    def addBackgroundShape(self, shapeName, width=1):
+        self.foregroundColor = self.colorPicker.getForegroundColor()
+        self.backgroundColor = self.colorPicker.getBackgroundColor()
+        self.foregroundShapeLeft = self.backgroundShapeLeft + ShapeBuffer.BACKGROUND_WIDTH
+        newRect = RectangleBuilder(self.slide, self.backgroundShapeLeft, BackgroundShape.TOP,
+                                   BackgroundShape.WIDTH * width, BackgroundShape.HEIGHT, self.backgroundColor)
+        newRect.setHeading(shapeName)
+        newRect.setRGBTextColor(RGBColor(0, 0, 0))
+        newRect.setBrightness(.1)
+        newRect.build()
+        self.backgroundShapeLeft += (BackgroundShape.WIDTH * width) + ShapeBuffer.BACKGROUND_WIDTH
+        self.foregroundShapeTop = ForegroundShape.TOP
+        self.colorPicker.nextColor()
+
+    def nextColumn(self):
+        self.foregroundShapeTop = ForegroundShape.TOP
+        self.foregroundShapeLeft = self.foregroundShapeLeft + ForegroundShape.WIDTH + ShapeBuffer.BACKGROUND_WIDTH
+
+    def addForegroundShape(self, aPerson):
+        aPersonRect = RectangleBuilder(self.slide, self.foregroundShapeLeft, self.foregroundShapeTop,
+                                       ForegroundShape.WIDTH, ForegroundShape.HEIGHT,
+                                       self.foregroundColor)
+
+        aPersonRect.setFirstName(aPerson.getFirstName())
+        aPersonRect.setLastName(aPerson.getLastName())
+
+        if aPerson.getRawName().startswith("TBH") or aPerson.getRawName().startswith("TBH"):
+            if not re.search('\d', aPerson.getRawName()):
+                aPersonRect.setLastName(aPerson.getReqNumber())
+
+        aPersonRect.setTitle(aPerson.getTitle())
+
+        if aPerson.isConsultant():
+            aPersonRect.setIsConsultant()
+
+        aPersonRect.setBrightness(0)
+        aPersonRect.build()
+        self.foregroundShapeTop += ForegroundShape.HEIGHT + ShapeBuffer.HEIGHT
+
+
+SOFT_WRAP_NUM = 6
+HARD_WRAP_NUM = 8
+
+class DrawOrg:
+    def __init__(self, workbookPath, sheetName, outputFile):
+        self.outputFile = outputFile
+        prs = Presentation()
+        self.slideLayout = prs.slide_layouts[5]
+        self.orgParser = OrgParser(workbookPath, sheetName)
+
+        self.drawAdmin(prs)
+        self.drawAllProducts(prs)
+        prs.save('test.pptx')
+
+    def getFirstLastName(self, aName):
+        if "," in aName:
+            nameParts = aName.split(",")
+            aName = "{} {}".format(nameParts[-1], " ".join(nameParts[0:-1]))
+        return aName
+
+
+    def _sortManagers(self, a, b):
+        a = self.getFirstLastName(a)
+        b = self.getFirstLastName(b)
+        if a < b:
+            return -1
+        if b > a:
+            return 1
+        return 0
+
+    def _getDirects(self, aManagerName):
+        directReports = self.orgParser.getDirectReports(aManagerName)
+        directReports.sort()
+        directReports = [person for person in directReports if not person.getRawName().strip().startswith("TBH")]
+        directReports = [person for person in directReports if not person.getRawName().strip().startswith("TBD")]
+        return directReports
+
+    def drawAdmin(self, presentation):
+
+        managersLeft = self.orgParser.getManagerSet()
+        completedManagers = set()
+
+        for aFloor in self.orgParser.peopleDataKeys.FLOORS.keys():
+            chartDrawer = DrawChartSlide(presentation, "Admin {}".format(aFloor), self.slideLayout)
+            managerList = self.orgParser.peopleDataKeys.FLOORS[aFloor]
+            managerList.sort(cmp=self._sortManagers)
+            for aManagerName in managerList:
+                directReports = []
+                directReports.extend(self._getDirects(aManagerName))
+                completedManagers.add(aManagerName)
+
+                aManagerName = self.getFirstLastName(aManagerName)
+                if not aManagerName:
+                    aManagerName = "!!NOT SET!!"
+                self.drawFunction(aManagerName, directReports, chartDrawer)
+
+        managersLeft = list(set(managersLeft) - completedManagers)
+        managersLeft.sort(cmp=self._sortManagers)
+
+        if len(managersLeft):
+            chartDrawer = DrawChartSlide(presentation, "Admin", self.slideLayout)
+            for aManagerName in managersLeft:
+                directReports = self._getDirects(aManagerName)
+                if not len(directReports):
+                    continue
+                aManagerName = self.getFirstLastName(aManagerName)
+                if not aManagerName:
+                    aManagerName = "!!NOT SET!!"
+                self.drawFunction(aManagerName, directReports, chartDrawer)
+
+    def drawAllProducts(self, presentation):
+        productList = list(self.orgParser.getProductSet())
+        productList.sort()
+
+        for aProductName in productList:
+            chartDrawer = DrawChartSlide(presentation, aProductName, self.slideLayout)
+            self.drawProduct(aProductName, chartDrawer)
+
+    def getSortedFuncList(self):
+        return ["Lead", "Head Coach", "PO","Product Owner", "Technology", "TA", "Tech", "SW Architecture", "Dev",
+                "Development", "QA", "Quality Assurance", "Stress",
+                "Characterization", "Auto", "Aut", "Automation", "Sustaining", "Solutions and Sustaining",
+                 "UI", "UX", "UI/UX", "Inf", "Infrastructure", "DevOps", "Cross Functional", "Cross", "Doc",
+                 "Documentation"]
+
+
+    def drawProduct(self, productName, chartDrawer):
+
+        functionList = self.orgParser.getFunctionSet(productName)
+        for aFunction in self.getSortedFuncList():
+            if aFunction in functionList:
+                functionPeople = self.orgParser.getFilteredPeople(productName, aFunction)
+                functionPeople.sort()
+                self.drawFunction(aFunction, functionPeople, chartDrawer)
+                functionList.remove(aFunction)
+
+        for aFunction in functionList:
+            functionPeople = self.orgParser.getFilteredPeople(productName, aFunction)
+            functionPeople.sort()
+            self.drawFunction(aFunction, functionPeople, chartDrawer)
+
+    def drawFunction(self, functionName, functionPeople, chartDrawer):
+        functionPeople = [person for person in functionPeople if person.getRawName().strip() != ""]
+
+        backgroundShapeWidth = max(math.ceil(len(functionPeople)/float(HARD_WRAP_NUM)), 1)
+        chartDrawer.addBackgroundShape(functionName, backgroundShapeWidth)
+
+        count = 1
+        wrapCount = math.ceil(len(functionPeople)/float(backgroundShapeWidth))
+        for aPerson in functionPeople:
+            chartDrawer.addForegroundShape(aPerson)
+            count += 1
+            if count > wrapCount:
+                chartDrawer.nextColumn()
+                count = 1
+
+
+def main(argv):
+    userDir = os.environ.get("USERPROFILE") or os.environ.get("HOME")
+    defaultSheetName = "PeopleData"
+    defaultDir = os.path.join(userDir, "Documents/HCP Anywhere/Org Charts and Hiring History")
+
+    examples = """
+    Examples:
+    # Print functional layout for Waltham Staff. Uses unique identifier for a file in default director: {}
+        %prog Waltham Staff -f
+    # Print Admin layout for Bellevue. Uses fully qualified path to the spreadsheet
+        %prog C:\Users\doreper\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm -a
+    # Print Admin layout for Waltham. Uses fully qualified path to the spreadsheet. Uses unique identifier
+    # for file in the specified directory
+        %prog ham staff -d {}\Documents\HCP Anywhere\Org Charts and Hiring History\ -a
+    """.format(defaultDir, userDir)
+
+    parser = argparse.ArgumentParser(description="""This tool is used to parse staff spreadsheet and display information in a format that can"
+                                                 "easily be pasted into an excel smartArt chart builder""", epilog=examples, formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument("path", nargs="+", type=str, help="unique file token for file in directory specified by '-d [default={}' ".format(defaultDir))
+    parser.add_argument("-d", "--directory", type=str, help="directory for the spreadsheet",
+                        default=defaultDir)
+
+    parser.add_argument("-s", "--sheetName", type=str, default=defaultSheetName, help="Sheet Name")
+
+    parser.add_argument("-a", "--admin", action="store_true", help="print admin layout")
+    parser.add_argument("-f", "--func", action="store_true", help="print func layout")
+    options = parser.parse_args(argv)
+
+    if not (options.admin or options.func):
+        options.admin = True
+        options.func = True
+
+    specifiedPath = " ".join(options.path)
+    if os.path.exists(specifiedPath):
+        workbookPath = specifiedPath
+    else:
+        fileMatch = glob.glob(os.path.join(options.directory, "*{}*".format(specifiedPath)))
+        fileMatch = [aFile for aFile in fileMatch if (not ((os.path.basename(aFile).startswith("~")) or "conflict" in os.path.basename(aFile).lower()))]
+        if not fileMatch:
+            raise OSError("Could not find any files in directory: '{}' that contain string: '{}'"
+                          .format(options.directory, specifiedPath))
+        if len(fileMatch) > 1:
+            raise OSError("Too many files found in dir: '{}' that contain string '{}' : \n\t\t{}".format(options.directory,
+                                                                                                   specifiedPath,
+                                                                                                   "\n\t\t".join(fileMatch)))
+        workbookPath = fileMatch[0]
+
+    orgDraw = DrawOrg(workbookPath, options.sheetName, "test.txt")
+
+
+
+if __name__ == "__main__":
+    # sys.argv = ["", 'C:\Code\OrgChartBuilder\\test\Bellevue Staff.xlsm']
+    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
+    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham Staff.xlsm']
+    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
+    main(sys.argv[1:])
+
