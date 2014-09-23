@@ -50,7 +50,7 @@ class SpreadsheetParser:
         for aRow in self.dataRows():
             isMatch = False
             for aKey, aVal in colValFilterDict.iteritems():
-                if not self.getColValueByName(aRow, aKey) == aVal:
+                if not self.getColValueByName(aRow, aKey).lower() == aVal.lower():
                     isMatch = False
                     break
                 isMatch = True

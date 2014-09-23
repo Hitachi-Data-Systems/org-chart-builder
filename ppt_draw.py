@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import glob
 import os
@@ -6,13 +8,15 @@ from pptx.dml.color import RGBColor
 import re
 from orgchart_parser import OrgParser
 import sys
-
-__author__ = 'David Oreper'
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
 from pptx.enum.text import MSO_ANCHOR
+
+__author__ = 'David Oreper'
+
+HARD_WRAP_NUM = 8
 
 
 class ColorPicker:
@@ -65,7 +69,7 @@ class ForegroundShape:
     HEIGHT = Inches(.48)
 
 
-class RectangleBuilder(object):
+class RectBuilder(object):
     """
     this class does stuff
     """
@@ -86,7 +90,8 @@ class RectangleBuilder(object):
         self.left = left
         self.rgbFillColor = rgbFillColor
         self.rgbTextColor = RGBColor(255, 255, 255)
-        self.brightness = .2
+        self.rgbFirstNameColor = self.rgbTextColor
+        self.brightness = 0
         self.firstName = None
         self.lastName = None
         self.title = None
@@ -100,6 +105,9 @@ class RectangleBuilder(object):
         :type rgbColor: pptx.dml.color.RGBColor
         """
         self.rgbTextColor = rgbColor
+
+    def setRGBFirstNameColor(self, rgbColor):
+        self.rgbFirstNameColor = rgbColor
 
     def setFirstName(self, firstName):
         """
@@ -121,20 +129,6 @@ class RectangleBuilder(object):
         :type title: str
         """
         self.title = title
-
-    def setIsConsultant(self):
-        """
-
-
-        """
-        self.consultant = True
-
-    def setIsExpat(self):
-        """
-
-
-        """
-        self.expat = True
 
     def setHeading(self, heading):
         """
@@ -185,15 +179,13 @@ class RectangleBuilder(object):
         aRun.font.name = "Arial (Body)"
 
     def _buildFirstName(self, textFrame):
-        self.addRun(textFrame, self.firstName, 9, True, False)
+        self.addRun(textFrame, self.firstName, 9, True, False, self.rgbFirstNameColor)
 
     def _buildLastName(self, textFrame):
         self.addRun(textFrame, self.lastName, 7, False, False)
 
     def _buildTitle(self, textFrame):
         title = self.title
-        if self.consultant:
-            title = "{} (c)".format(title)
         self.addRun(textFrame, title, 5, False, True)
 
     def _buildHeading(self, textFrame):
@@ -214,6 +206,7 @@ class RectangleBuilder(object):
 
         if self.title:
             self._buildTitle(shape.textframe)
+
 
 class DrawChartSlide:
     def __init__(self, aPresentation, slideTitle, titleSlide):
@@ -239,12 +232,12 @@ class DrawChartSlide:
         self.foregroundColor = self.colorPicker.getForegroundColor()
         self.backgroundColor = self.colorPicker.getBackgroundColor()
         self.foregroundShapeLeft = self.backgroundShapeLeft + ShapeBuffer.BACKGROUND_WIDTH
-        newRect = RectangleBuilder(self.slide, self.backgroundShapeLeft, BackgroundShape.TOP,
-                                   BackgroundShape.WIDTH * width, BackgroundShape.HEIGHT, self.backgroundColor)
+        newRect = RectBuilder(self.slide, self.backgroundShapeLeft, BackgroundShape.TOP,
+                              BackgroundShape.WIDTH * width, BackgroundShape.HEIGHT, self.backgroundColor)
 
         newRect.setHeading(shapeName)
         newRect.setRGBTextColor(RGBColor(0, 0, 0))
-        newRect.setBrightness(.1)
+        newRect.setBrightness(.2)
         newRect.build()
         self.backgroundShapeLeft += (BackgroundShape.WIDTH * width) + ShapeBuffer.BACKGROUND_WIDTH
         self.foregroundShapeTop = ForegroundShape.TOP
@@ -255,11 +248,12 @@ class DrawChartSlide:
         self.foregroundShapeLeft = self.foregroundShapeLeft + ForegroundShape.WIDTH + ShapeBuffer.BACKGROUND_WIDTH
 
     def addForegroundShape(self, aPerson):
-        aPersonRect = RectangleBuilder(self.slide, self.foregroundShapeLeft, self.foregroundShapeTop,
-                                       ForegroundShape.WIDTH, ForegroundShape.HEIGHT, self.foregroundColor)
+        aPersonRect = RectBuilder(self.slide, self.foregroundShapeLeft, self.foregroundShapeTop,
+                                  ForegroundShape.WIDTH, ForegroundShape.HEIGHT, self.foregroundColor)
 
         aPersonRect.setFirstName(aPerson.getFirstName())
         aPersonRect.setLastName(aPerson.getLastName())
+        aPersonRect.setTitle(aPerson.getTitle())
         aPersonRect.setBrightness(0)
 
         if aPerson.getRawName().startswith("TBH") or aPerson.getRawName().startswith("TBH"):
@@ -267,41 +261,39 @@ class DrawChartSlide:
                 aPersonRect.setLastName(aPerson.getReqNumber())
 
         if aPerson.isExpat():
-            aPersonRect.setRGBTextColor(RGBColor(0, 0, 0))
-
-        aPersonRect.setTitle(aPerson.getTitle())
+            aPersonRect.setTitle(aPerson.getProduct())
 
         if aPerson.isConsultant():
-            aPersonRect.setIsConsultant()
-            aPersonRect.setBrightness(aPersonRect.brightness + .2)
-            # color = aPersonRect.rgbFillColor
-            # darkness = 100
-            # aPersonRect.setRGBTextColor(RGBColor((color[0]+darkness) %254, (color[1]+darkness)%254, (color[2]+darkness)%254))
+            aPersonRect.setTitle(aPerson.getTitle() + " (c)")
 
         if aPerson.isManager():
-            aPersonRect.setRGBTextColor(RGBColor(255, 238, 0))
-
+            aPersonRect.setRGBFirstNameColor(RGBColor(255, 238, 0))
 
         aPersonRect.build()
         self.foregroundShapeTop += ForegroundShape.HEIGHT + ShapeBuffer.HEIGHT
 
 
-SOFT_WRAP_NUM = 6
-HARD_WRAP_NUM = 8
+class OrgDraw:
+    def __init__(self, workbookPath, sheetName):
+        """
 
-
-class DrawOrg:
-    def __init__(self, workbookPath, sheetName, outputFile):
-        self.outputFile = outputFile
-        prs = Presentation()
-        self.slideLayout = prs.slide_layouts[5]
+        :type workbookPath: str
+        :type sheetName: str
+        """
+        self.presentation = Presentation()
+        self.slideLayout = self.presentation.slide_layouts[5]
         self.orgParser = OrgParser(workbookPath, sheetName)
 
-        self.drawAdmin(prs)
-        self.drawAllProducts(prs)
-        prs.save('test.pptx')
+    def save(self, filename):
+        self.presentation.save(filename)
+
 
     def getFirstLastName(self, aName):
+        """
+
+        :type aName: str
+        :return:
+        """
         if "," in aName:
             nameParts = aName.split(",")
             aName = "{} {}".format(nameParts[-1], " ".join(nameParts[0:-1]))
@@ -317,19 +309,23 @@ class DrawOrg:
         return 0
 
     def _getDirects(self, aManagerName):
+        """
+
+        :type aManagerName: str
+        :return:
+        """
         directReports = self.orgParser.getDirectReports(aManagerName)
         directReports.sort()
         directReports = [person for person in directReports if not person.getRawName().strip().startswith("TBH")]
         directReports = [person for person in directReports if not person.getRawName().strip().startswith("TBD")]
         return directReports
 
-    def drawAdmin(self, presentation):
-
+    def drawAdmin(self):
         managersLeft = self.orgParser.getManagerSet()
         completedManagers = set()
 
         for aFloor in self.orgParser.peopleDataKeys.FLOORS.keys():
-            chartDrawer = DrawChartSlide(presentation, "Admin {}".format(aFloor), self.slideLayout)
+            chartDrawer = DrawChartSlide(self.presentation, "Admin {}".format(aFloor), self.slideLayout)
             managerList = self.orgParser.peopleDataKeys.FLOORS[aFloor]
             managerList.sort(cmp=self._sortManagers)
             for aManagerName in managerList:
@@ -346,7 +342,7 @@ class DrawOrg:
         managersLeft.sort(cmp=self._sortManagers)
 
         if len(managersLeft):
-            chartDrawer = DrawChartSlide(presentation, "Admin", self.slideLayout)
+            chartDrawer = DrawChartSlide(self.presentation, "Admin", self.slideLayout)
             for aManagerName in managersLeft:
                 directReports = self._getDirects(aManagerName)
                 if not len(directReports):
@@ -356,12 +352,23 @@ class DrawOrg:
                     aManagerName = "!!NOT SET!!"
                 self.drawFunction(aManagerName, directReports, chartDrawer)
 
-    def drawAllProducts(self, presentation):
+    def drawExpat(self):
+        chartDrawer = DrawChartSlide(self.presentation, "EXPAT", self.slideLayout)
+        expats = self.orgParser.getFilteredPeople(isExpat=True)
+        expatFunctions = set([expat.getFunction() for expat in expats])
+
+        for aFunction in expatFunctions:
+            self.drawFunction(aFunction, [expat for expat in expats if expat.getFunction() == aFunction], chartDrawer)
+
+    def drawAllProducts(self):
         productList = list(self.orgParser.getProductSet())
         productList.sort()
 
         for aProductName in productList:
-            chartDrawer = DrawChartSlide(presentation, aProductName, self.slideLayout)
+            slideTitle = aProductName
+            if not slideTitle:
+                slideTitle = "!!Product not set!!"
+            chartDrawer = DrawChartSlide(self.presentation, slideTitle, self.slideLayout)
             self.drawProduct(aProductName, chartDrawer)
 
     def getSortedFuncList(self):
@@ -372,7 +379,11 @@ class DrawOrg:
                 "Documentation"]
 
     def drawProduct(self, productName, chartDrawer):
+        """
 
+        :type productName: str
+        :type chartDrawer: ppt_draw.DrawChartSlide
+        """
         functionList = self.orgParser.getFunctionSet(productName)
         for aFunction in self.getSortedFuncList():
             if aFunction in functionList:
@@ -383,13 +394,24 @@ class DrawOrg:
 
         for aFunction in functionList:
             functionPeople = self.orgParser.getFilteredPeople(productName, aFunction)
+            functionPeople = [person for person in functionPeople if not person.isExpat()]
             functionPeople.sort()
             self.drawFunction(aFunction, functionPeople, chartDrawer)
 
     def drawFunction(self, functionName, functionPeople, chartDrawer):
-        functionPeople = [person for person in functionPeople if person.getRawName().strip() != ""]
+        """
 
+        :type functionName: str
+        :type functionPeople: list
+        :type chartDrawer: ppt_draw.DrawChartSlide
+        :return:
+        """
+        functionPeople = [person for person in functionPeople if person.getRawName().strip() != ""]
+        if len(functionPeople) == 0:
+            return
         backgroundShapeWidth = max(math.ceil(len(functionPeople) / float(HARD_WRAP_NUM)), 1)
+        if not functionName:
+            functionName = "!!NOT SET!!"
         chartDrawer.addBackgroundShape(functionName, backgroundShapeWidth)
 
         count = 1
@@ -406,6 +428,7 @@ def main(argv):
     userDir = os.environ.get("USERPROFILE") or os.environ.get("HOME")
     defaultSheetName = "PeopleData"
     defaultDir = os.path.join(userDir, "Documents/HCP Anywhere/Org Charts and Hiring History")
+    defaultOutputFile = "orgChart.pptx"
 
     examples = """
     Examples:
@@ -418,25 +441,21 @@ def main(argv):
         %prog ham staff -d {}\Documents\HCP Anywhere\Org Charts and Hiring History\ -a
     """.format(defaultDir, userDir)
 
-    parser = argparse.ArgumentParser(description="""This tool is used to parse staff spreadsheet and display information in a format that can"
-                                                 "easily be pasted into an excel smartArt chart builder""",
+    parser = argparse.ArgumentParser(description="""This tool is used to parse staff spreadsheet and display
+    information in a format that can easily be pasted into an excel smartArt chart builder""",
                                      epilog=examples, formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument("path", nargs="+", type=str,
-                        help="unique file token for file in directory specified by '-d [default={}' ".format(
+                        help="unique file token for file in directory specified by '-d [default={}]' ".format(
                             defaultDir))
     parser.add_argument("-d", "--directory", type=str, help="directory for the spreadsheet",
                         default=defaultDir)
 
     parser.add_argument("-s", "--sheetName", type=str, default=defaultSheetName, help="Sheet Name")
 
-    parser.add_argument("-a", "--admin", action="store_true", help="print admin layout")
-    parser.add_argument("-f", "--func", action="store_true", help="print func layout")
-    options = parser.parse_args(argv)
+    parser.add_argument("-o", "--outputFile", type=str, default=defaultOutputFile, help="output file")
 
-    if not (options.admin or options.func):
-        options.admin = True
-        options.func = True
+    options = parser.parse_args(argv)
 
     specifiedPath = " ".join(options.path)
     if os.path.exists(specifiedPath):
@@ -456,14 +475,16 @@ def main(argv):
                                                                                                    fileMatch)))
         workbookPath = fileMatch[0]
 
-    orgDraw = DrawOrg(workbookPath, options.sheetName, "test.txt")
+    orgDraw = OrgDraw(workbookPath, options.sheetName)
 
+    orgDraw.drawAllProducts()
+    orgDraw.drawExpat()
+    orgDraw.drawAdmin()
+    orgDraw.save(options.outputFile)
 
 if __name__ == "__main__":
     # sys.argv = ["", 'C:\Code\OrgChartBuilder\\test\Bellevue Staff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
-
-    sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham Staff.xlsm']
-    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
+    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham Staff.xlsm']
+    #  sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     main(sys.argv[1:])
-
