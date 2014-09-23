@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/OrgChartBuilder.iml" filepath="$PROJECT_DIR$/.idea/OrgChartBuilder.iml" />
-      <module fileurl="file://file:C:/../..//C:/Code/OrgChartBuilder/.idea/OrgChartBuilder.iml" filepath="file:C:/../..//C:/Code/OrgChartBuilder/.idea/OrgChartBuilder.iml" />
     </modules>
   </component>
 </project>
