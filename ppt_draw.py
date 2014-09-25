@@ -16,7 +16,7 @@ from pptx.enum.text import MSO_ANCHOR
 
 __author__ = 'David Oreper'
 
-HARD_WRAP_NUM = 8
+HARD_WRAP_NUM = 7
 
 
 class ColorPicker:
@@ -55,9 +55,9 @@ class BackgroundShape:
     def __init__(self):
         pass
 
-    TOP = Inches(1.5)
+    TOP = Inches(1.2)
     WIDTH = Inches(1.17)
-    HEIGHT = Inches(5.5)
+    HEIGHT = Inches(4.3)
 
 
 class ForegroundShape:
@@ -272,6 +272,8 @@ class DrawChartSlide:
         aPersonRect.build()
         self.foregroundShapeTop += ForegroundShape.HEIGHT + ShapeBuffer.HEIGHT
 
+MAX_WIDTH_INCHES = Inches(10)
+MAX_HEIGHT_INCHES = Inches(5.63)
 
 class OrgDraw:
     def __init__(self, workbookPath, sheetName):
@@ -281,6 +283,8 @@ class OrgDraw:
         :type sheetName: str
         """
         self.presentation = Presentation()
+        self.presentation.slide_height = MAX_HEIGHT_INCHES
+        self.presentation.slide_width = MAX_WIDTH_INCHES
         self.slideLayout = self.presentation.slide_layouts[5]
         self.orgParser = OrgParser(workbookPath, sheetName)
 
