@@ -17,9 +17,9 @@ class SpreadsheetParser:
         :type workbookName: str
         :type dataSheetName: str
         """
-        wb = load_workbook(filename=workbookName)
+        wb = load_workbook(filename=workbookName, read_only=True)
         self.sheet_ranges = wb[dataSheetName]
-        self.spreadsheetColumns = ColumnHeaders(self.sheet_ranges.rows[0])
+        self.spreadsheetColumns = ColumnHeaders(list(self.sheet_ranges.rows)[0])
 
     def getColValueByName(self, aRow, colName):
         """
@@ -38,7 +38,7 @@ class SpreadsheetParser:
         return self.spreadsheetColumns.columnExists(colName)
 
     def dataRows(self):
-        for aRow in self.sheet_ranges.rows[1:]:
+        for aRow in list(self.sheet_ranges.rows)[1:]:
             yield aRow
 
     def filteredDataRows(self, colValFilterDict):
