@@ -256,15 +256,16 @@ class DrawChartSlide:
 
         aPersonRect.setFirstName(aPerson.getFirstName())
         aPersonRect.setLastName(aPerson.getLastName())
-        aPersonRect.setTitle(aPerson.getTitle())
         aPersonRect.setBrightness(0)
 
         if aPerson.getRawName().startswith("TBH") or aPerson.getRawName().startswith("TBD"):
             if not re.search('\d', aPerson.getRawName()):
-                aPersonRect.setLastName(aPerson.getReqNumber())
+                aPersonRect.setTitle(aPerson.getReqNumber())
         else:
             if aPerson.isExpat():
                 aPersonRect.setTitle(aPerson.getProduct())
+            else:
+                aPersonRect.setTitle(aPerson.getTitle())
 
             if aPerson.isConsultant():
                 aPersonRect.setTitle(aPerson.getTitle() + " (c)")
@@ -513,4 +514,11 @@ if __name__ == "__main__":
     #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
     #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham Staff.xlsm']
     #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
+    #
+    # for davep:
+    #sys.argv = ["", '-d', '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History', 'Waltham Staff.xlsm']
     main(sys.argv[1:])
+
+
+
+
