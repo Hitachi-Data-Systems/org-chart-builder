@@ -2,7 +2,7 @@ import math
 from pptx.dml.color import RGBColor
 from pptx.util import Inches
 import re
-from shape import RectangleBuilder, ColorPicker
+from shape import RectangleBuilder, ColorPicker, SlideTitleShape
 
 __author__ = 'David Oreper'
 
@@ -41,6 +41,7 @@ class DrawChartSlide:
         self.groupList.append(peopleGroup)
 
     def _adjustGroupWidth(self, reductionRatio):
+        print("Reducing width by {}% for: {}".format(100 - int(reductionRatio*100), self.slideTitle))
         rightEdge = Inches(.2)
         for aGroup in self.groupList:
             aGroup.adjustWidth(reductionRatio)
@@ -53,32 +54,37 @@ class DrawChartSlide:
         for aGroup in self.groupList:
             aGroup.setLeft(aGroup.getLeft() + leftAdjust)
 
+    def addTitle(self, aSlide):
+        title = SlideTitleShape()
+        title.setLeft((DrawChartSlide.RIGHT_EDGE/2) - Inches(len(self.slideTitle)/float(10)))
+        title.setTop(.35)
+        title.drawTitle(self.slideTitle, aSlide)
+
     def drawSlide(self):
         if not self.groupList:
             print "WARNING: NO Groups added for product: {}".format(self.slideTitle)
             return
 
-        self.slide = self.presentation.slides.add_slide(self.slideLayout)
-        shapes = self.slide.shapes
-        shapes.title.text = self.slideTitle
+        slide = self.presentation.slides.add_slide(self.slideLayout)
+        self.addTitle(slide)
+
         rightEdge = self.groupList[-1].getRightEdge()
         if rightEdge > DrawChartSlide.RIGHT_EDGE:
-            # TODO? Consolidate groups
             reductionRatio = 1 / (float(rightEdge) / DrawChartSlide.RIGHT_EDGE)
             self._adjustGroupWidth(reductionRatio)
 
         self._center()
 
         for aGroup in self.groupList:
-            aGroup.build(self.slide)
+            aGroup.build(slide)
 
 
 class GroupShapeDimensions:
     def __init__(self):
         pass
 
-    TOP = Inches(1.2)
-    HEIGHT = Inches(4.3)
+    TOP = Inches(.75)
+    HEIGHT = Inches(4.8)
     WIDTH = Inches(1.17)
     BUFFER_WIDTH = Inches(.05)
     BUFFER_HEIGHT = Inches(.4)
@@ -88,12 +94,11 @@ class MemberShapeDimensions:
     def __init__(self):
         pass
 
-    HEIGHT = Inches(.43)
+    HEIGHT = Inches(.45)
     BUFFER_WIDTH = Inches(.03)
-    BUFFER_HEIGHT = Inches(.05)
+    BUFFER_HEIGHT = Inches(.03)
     WIDTH = GroupShapeDimensions.WIDTH - (BUFFER_WIDTH * 2)
-    HARD_WRAP_NUM = GroupShapeDimensions.HEIGHT / (HEIGHT+ BUFFER_HEIGHT)
-
+    HARD_WRAP_NUM = (GroupShapeDimensions.HEIGHT - GroupShapeDimensions.BUFFER_HEIGHT) / (HEIGHT + BUFFER_HEIGHT)
 
 class PeopleGroup(object):
     def __init__(self, title, left, top, height):
@@ -115,6 +120,7 @@ class PeopleGroup(object):
         self.memberLeft = self.groupLeft + MemberShapeDimensions.BUFFER_WIDTH
         self.memberTop = self.groupTop + GroupShapeDimensions.BUFFER_HEIGHT
         self.memberShapeList = []
+        self.fontReduce = 1
 
     def _nextColumn(self):
         self.memberTop = self.groupTop + GroupShapeDimensions.BUFFER_HEIGHT
@@ -166,10 +172,10 @@ class PeopleGroup(object):
         :type reductionRatio: float
         """
         self.groupUnitWidth = self.groupUnitWidth * reductionRatio
-
+        self.fontReduce = reductionRatio + ((1 - reductionRatio) / 2)
         for aMember in self.memberShapeList:
             aMember.adjustWidth(reductionRatio)
-            aMember.adjustFontSizes(reductionRatio + ((1 - reductionRatio) / 2))
+            aMember.adjustFontSizes(self.fontReduce)
 
     def getWidth(self):
         return self.groupWidthUnits * self.groupUnitWidth
@@ -221,7 +227,7 @@ class PeopleGroup(object):
         groupRect.setRGBTextColor(RGBColor(0, 0, 0))
         groupRect.setHeading(self.title)
         groupRect.setBrightness(.2)
-
+        groupRect.adjustFontSizes(self.fontReduce)
         groupRect.build(aSlide)
         for aMember in self.memberShapeList:
             aMember.build(aSlide)

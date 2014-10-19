@@ -1,7 +1,8 @@
+from pptx import Presentation
 from pptx.dml.color import RGBColor
 
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.util import Pt
+from pptx.util import Pt, Inches
 from pptx.enum.text import PP_ALIGN
 from pptx.enum.text import MSO_ANCHOR
 
@@ -32,23 +33,21 @@ class ColorPicker:
 
 class RectangleBuilder(object):
     """
-    this class does stuff
+    Build rectangles
     """
 
     def __init__(self, left, top, width, height):
         """
-
         :param left:
         :param top:
         :param width:
         :param height:
-        :param rgbFillColor:
         """
         self.width = width
         self.height = height
         self.top = top
         self.left = left
-        self.rgbTextColor = RGBColor(255, 255, 255)
+        self.rgbTextColor = RGBColor(0, 0, 0)
         self.rgbFillColor = RGBColor(255, 255, 255)
         self.rgbFirstNameColor = self.rgbTextColor
         self.brightness = 0
@@ -59,6 +58,7 @@ class RectangleBuilder(object):
         self.expat = None
         self.heading = None
         self.firstNameSize = 8
+        self.headingSize = 9
         self.lastNameSize = 6
         self.titleSize = 5
         self.minFontSize = 5
@@ -67,6 +67,7 @@ class RectangleBuilder(object):
         return max(self.minFontSize, float(currentSize) * scaleRatio)
 
     def adjustFontSizes(self, scaleRatio):
+        self.headingSize = self.adjustFont(self.headingSize, scaleRatio)
         self.firstNameSize = self.adjustFont(self.firstNameSize, scaleRatio)
         self.lastNameSize = self.adjustFont(self.lastNameSize, scaleRatio)
         self.titleSize = self.adjustFont(self.titleSize, scaleRatio)
@@ -182,7 +183,9 @@ class RectangleBuilder(object):
         self.addRun(textFrame, title, self.titleSize, False, True)
 
     def _buildHeading(self, textFrame):
-        self.addRun(textFrame, self.heading, 8, True, False)
+        textFrame.margin_left = 0
+        textFrame.margin_right = 0
+        self.addRun(textFrame, self.heading, self.headingSize, True, False)
 
     def build(self, aSlide):
         shape = self._buildShape(aSlide)
@@ -199,3 +202,42 @@ class RectangleBuilder(object):
 
         if self.title:
             self._buildTitle(shape.textframe)
+
+
+class SlideTitleShape:
+    def __init__(self):
+        self.top = 0
+        self.left = 0
+        self.titleSize = 25
+
+    def setTop(self, top):
+        self.top = top
+
+    def setLeft(self, left):
+        self.left = left
+
+    def setTitleSize(self, size):
+        self.titleSize = size
+
+    def drawTitle(self, slideTitle, aSlide):
+        textBox = aSlide.shapes.add_textbox(self.left, self.top, Inches(4), Inches(1))
+        paragraph = textBox.textframe.paragraphs[0]
+        aRun = paragraph.add_run()
+        text = "{}\r".format(slideTitle.strip())
+        aRun.text = text
+        aRun.font.size = Pt(self.titleSize)
+        aRun.font.bold = True
+        aRun.alignment = PP_ALIGN.CENTER
+        aRun.font.name = "Arial (Body)"
+
+#
+# if __name__ == "__main__":
+#     presentation = Presentation()
+#     presentation.slide_height = Inches(10)
+#     presentation.slide_width = Inches(10)
+#
+#     slide = presentation.slides.add_slide(presentation.slide_layouts[6])
+#     SlideTitleShape("TEST", slide)
+#
+#     presentation.save("test.pptx")
+

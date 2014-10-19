@@ -23,7 +23,7 @@ class OrgDraw:
         self.presentation = Presentation()
         self.presentation.slide_height = DrawChartSlide.MAX_HEIGHT_INCHES
         self.presentation.slide_width = DrawChartSlide.MAX_WIDTH_INCHES
-        self.slideLayout = self.presentation.slide_layouts[5]
+        self.slideLayout = self.presentation.slide_layouts[6]
         self.orgParser = OrgParser(workbookPath, sheetName)
         self.draftMode = draftMode
 
