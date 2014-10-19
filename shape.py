@@ -60,12 +60,16 @@ class RectangleBuilder(object):
         self.heading = None
         self.firstNameSize = 8
         self.lastNameSize = 6
-        self.titleSize = 4
+        self.titleSize = 5
+        self.minFontSize = 5
+
+    def adjustFont(self, currentSize, scaleRatio):
+        return max(self.minFontSize, float(currentSize) * scaleRatio)
 
     def adjustFontSizes(self, scaleRatio):
-        self.firstNameSize = float(self.firstNameSize) * scaleRatio
-        self.lastNameSize = float(self.lastNameSize) * scaleRatio
-        self.titleSize = float(self.titleSize) * scaleRatio
+        self.firstNameSize = self.adjustFont(self.firstNameSize, scaleRatio)
+        self.lastNameSize = self.adjustFont(self.lastNameSize, scaleRatio)
+        self.titleSize = self.adjustFont(self.titleSize, scaleRatio)
 
     def setLeft(self, leftCoord):
         self.left = leftCoord
