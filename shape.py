@@ -209,6 +209,8 @@ class SlideTitleShape:
         self.top = 0
         self.left = 0
         self.titleSize = 25
+        self.width = Inches(10)
+        self.height = Inches(1)
 
     def setTop(self, top):
         self.top = top
@@ -216,12 +218,19 @@ class SlideTitleShape:
     def setLeft(self, left):
         self.left = left
 
+    def setWidth(self, width):
+        self.width = width
+
+    def setHeight(self, height):
+        self.height = height
+
     def setTitleSize(self, size):
         self.titleSize = size
 
     def drawTitle(self, slideTitle, aSlide):
-        textBox = aSlide.shapes.add_textbox(self.left, self.top, Inches(4), Inches(1))
+        textBox = aSlide.shapes.add_textbox(self.left, self.top, self.width, self.height)
         paragraph = textBox.textframe.paragraphs[0]
+        paragraph.alignment = PP_ALIGN.CENTER
         aRun = paragraph.add_run()
         text = "{}\r".format(slideTitle.strip())
         aRun.text = text

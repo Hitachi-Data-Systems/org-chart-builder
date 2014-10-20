@@ -56,7 +56,8 @@ class DrawChartSlide:
 
     def addTitle(self, aSlide):
         title = SlideTitleShape()
-        title.setLeft((DrawChartSlide.RIGHT_EDGE/2) - Inches(len(self.slideTitle)/float(10)))
+        title.setLeft(0)
+        title.setWidth(DrawChartSlide.MAX_WIDTH_INCHES)
         title.setTop(.35)
         title.drawTitle(self.slideTitle, aSlide)
 
@@ -185,7 +186,11 @@ class PeopleGroup(object):
 
     def addMembers(self, peopleList):
         count = 1
+
+        # Calculate the total width of the group so that we can distribute columns evenly
         self.groupWidthUnits = max(math.ceil(len(peopleList) / float(MemberShapeDimensions.HARD_WRAP_NUM)), 1)
+
+        # Calculate how many people will be in each column
         wrapCount = math.ceil(len(peopleList) / float(self.groupWidthUnits))
         for aPerson in peopleList:
             self.addMember(aPerson)
