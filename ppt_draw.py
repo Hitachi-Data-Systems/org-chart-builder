@@ -136,7 +136,10 @@ class OrgDraw:
 
     def drawAllProducts(self):
         productList = list(self.orgParser.getProductSet())
-        productList.remove(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM)
+
+        if self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM in productList:
+            productList.remove(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM)
+
         productList.sort()
 
         for aProductName in productList:
@@ -173,19 +176,7 @@ class OrgDraw:
     def getSortedFunctionalPeople(self, productName, functionName):
         functionPeople = self.orgParser.getFilteredPeople(productName, functionName)
         functionPeople = [person for person in functionPeople if not person.isExpat()]
-
-        # List interns last
-        part1 = [person for person in functionPeople if not person.isIntern()]
-        part1.sort()
-        print "Sorted without intern for %s: %s" % (functionName, [person.getFullName() for person in part1])
-
-        part2 = [person for person in functionPeople if person.isIntern()]
-        part2.sort()
-        print "Sorted with intern for %s: %s" % (functionName, [person.getFullName() for person in part2])
-
-        functionPeople = part1
-        functionPeople.extend(part2)
-
+        functionPeople.sort()
         return functionPeople
 
     def drawProduct(self, productName, chartDrawer):
@@ -299,6 +290,7 @@ if __name__ == "__main__":
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:
-    sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History'
-    sys.argv = ['', '-d', sDir, '-o%s/Waltham Chart Gen.pptx' % sDir, 'Waltham Staff.xlsm']
+    # sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History'
+    # sys.argv = ['', '-d', sDir, '-o%s/Waltham Chart Gen.pptx' % sDir, 'Waltham Staff.xlsm']
+    # sys.argv = ['', '-d', sDir, '-o SantaClara Staff Gen.pptx', 'SantaClara Staff.xlsm']
     main(sys.argv[1:])

@@ -117,6 +117,11 @@ class PersonRowWrapper:
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.PROJECT)
 
     def __lt__(self, other):
+        if self.isIntern() and not other.isIntern():
+            return False;
+        elif not self.isIntern() and other.isIntern():
+            return True;
+
         if self.getFullName().startswith("TBH"):
             if other.getFullName().startswith("TBH"):
                 return self.getFullName() < other.getFullName()
