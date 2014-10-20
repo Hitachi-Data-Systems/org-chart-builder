@@ -136,7 +136,8 @@ class OrgDraw:
 
     def drawAllProducts(self):
         productList = list(self.orgParser.getProductSet())
-        productList.remove(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM)
+        if self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM in productList:
+            productList.remove(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM)
         productList.sort()
 
         for aProductName in productList:
@@ -282,7 +283,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
+    sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham Staff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #

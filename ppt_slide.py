@@ -202,6 +202,8 @@ class PeopleGroup(object):
         aPersonRect.setLastName(aPerson.getLastName())
         aPersonRect.setBrightness(0)
         aPersonRect.setRGBFillColor(self.memberColor)
+        aPersonRect.setRGBTextColor(RGBColor(255, 255, 255))
+        aPersonRect.setRGBFirstNameColor(RGBColor(255, 255, 255))
 
         if aPerson.getRawName().startswith("TBH") or aPerson.getRawName().startswith("TBD"):
             if not re.search('\d', aPerson.getRawName()):
