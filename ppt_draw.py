@@ -105,7 +105,7 @@ class OrgDraw:
         expats = self.orgParser.getFilteredPeople(isExpat=True)
         if not len(expats):
             return
-        chartDrawer = DrawChartSlide(self.presentation, "EXPAT", self.slideLayout)
+        chartDrawer = DrawChartSlide(self.presentation, "ExPat", self.slideLayout)
 
         expatFunctions = set([expat.getFunction() for expat in expats])
 
@@ -173,7 +173,19 @@ class OrgDraw:
     def getSortedFunctionalPeople(self, productName, functionName):
         functionPeople = self.orgParser.getFilteredPeople(productName, functionName)
         functionPeople = [person for person in functionPeople if not person.isExpat()]
-        functionPeople.sort()
+
+        # List interns last
+        part1 = [person for person in functionPeople if not person.isIntern()]
+        part1.sort()
+        print "Sorted without intern for %s: %s" % (functionName, [person.getFullName() for person in part1])
+
+        part2 = [person for person in functionPeople if person.isIntern()]
+        part2.sort()
+        print "Sorted with intern for %s: %s" % (functionName, [person.getFullName() for person in part2])
+
+        functionPeople = part1
+        functionPeople.extend(part2)
+
         return functionPeople
 
     def drawProduct(self, productName, chartDrawer):
@@ -287,6 +299,6 @@ if __name__ == "__main__":
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:
-    #sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History'
-    #sys.argv = ['', '-d', sDir, '-o%s/Waltham Chart Gen.pptx' % sDir, 'Waltham Staff.xlsm']
+    sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History'
+    sys.argv = ['', '-d', sDir, '-o%s/Waltham Chart Gen.pptx' % sDir, 'Waltham Staff.xlsm']
     main(sys.argv[1:])
