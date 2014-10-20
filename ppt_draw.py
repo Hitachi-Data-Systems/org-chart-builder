@@ -116,6 +116,7 @@ class OrgDraw:
     def drawCrossFunc(self):
         crossFuncPeople = []
 
+        # dbp: If we use CROSS_FUNCT_TEAM name for the Project, we could fold this into drawProduct?
         for aFunc in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
             crossFuncPeople.extend(self.orgParser.getFilteredPeople(functionName=aFunc))
 
@@ -127,21 +128,26 @@ class OrgDraw:
         functions = set([aPerson.getFunction() for aPerson in crossFuncPeople])
 
         for aFunction in functions:
-            self.buildGroup(aFunction, [aPerson for aPerson in crossFuncPeople
-                                        if aPerson.getFunction() == aFunction], chartDrawer)
+            # This is a little redundant because we already got a broader list above, but lets
+            # us reuse the logic for creating the sorted list
+            funcPeople = self.getSortedFunctionalPeople(None, aFunction)
+            self.buildGroup(aFunction, funcPeople, chartDrawer)
         chartDrawer.drawSlide()
 
     def drawAllProducts(self):
         productList = list(self.orgParser.getProductSet())
+        productList.remove(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM)
         productList.sort()
 
         for aProductName in productList:
-            slideTitle = aProductName
-            if not slideTitle:
+            if aProductName:
+                slideTitle = "%s - Functional Teams" % aProductName
+            else:
                 # skip empty products unless we're in draft mode
                 if not self.draftMode:
                     continue
                 slideTitle = orgchart_parser.NOT_SET
+
             chartDrawer = DrawChartSlide(self.presentation, slideTitle, self.slideLayout)
             self.drawProduct(aProductName, chartDrawer)
 
@@ -164,6 +170,12 @@ class OrgDraw:
         return 0
 
 
+    def getSortedFunctionalPeople(self, productName, functionName):
+        functionPeople = self.orgParser.getFilteredPeople(productName, functionName)
+        functionPeople = [person for person in functionPeople if not person.isExpat()]
+        functionPeople.sort()
+        return functionPeople
+
     def drawProduct(self, productName, chartDrawer):
         """
 
@@ -173,17 +185,14 @@ class OrgDraw:
         functionList = list(self.orgParser.getFunctionSet(productName))
         functionList.sort(cmp=self.sortByFunc)
         for aFunction in functionList:
-            if aFunction in functionList:
-                if aFunction.lower() in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
-                    continue
-                functionPeople = self.orgParser.getFilteredPeople(productName, aFunction)
-                functionPeople = [person for person in functionPeople if not person.isExpat()]
+            if aFunction.lower() in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
+                continue
 
-                functionPeople.sort()
-                if not functionPeople:
-                    print "WARNING: No members added to '{}' for product: '{}'".format(aFunction, productName)
-                    continue
-                self.buildGroup(aFunction, functionPeople, chartDrawer)
+            functionPeople = self.getSortedFunctionalPeople(productName, aFunction)
+            if not functionPeople:
+                print "WARNING: No members added to '{}' for product: '{}'".format(aFunction, productName)
+                continue
+            self.buildGroup(aFunction, functionPeople, chartDrawer)
 
         chartDrawer.drawSlide()
 
@@ -278,5 +287,6 @@ if __name__ == "__main__":
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:
-    # sys.argv = ["", '-d', '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History', 'Waltham Staff.xlsm']
+    sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History'
+    sys.argv = ['', '-d', sDir, '-o%s/Waltham Chart Gen.pptx' % sDir, 'Waltham Staff.xlsm']
     main(sys.argv[1:])
