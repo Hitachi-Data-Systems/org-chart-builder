@@ -284,11 +284,11 @@ def main(argv):
 
 if __name__ == "__main__":
     #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
-    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham Staff.xlsm']
+    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:
-    # sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History'
-    # sys.argv = ['', '-d', sDir, '-o%s/Waltham Chart Gen.pptx' % sDir, 'Waltham Staff.xlsm']
-    # sys.argv = ['', '-d', sDir, '-o SantaClara Staff Gen.pptx', 'SantaClara Staff.xlsm']
+    #sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History'
+    #sys.argv = ['', '-d', sDir, '-o%s/WalthamChartGen.pptx' % sDir, 'WalthamStaff.xlsm']
+    #sys.argv = ['', '-d', sDir, '-oSantaClara Staff Gen-dbp.pptx', 'SantaClara Staff.xlsm']
     main(sys.argv[1:])

@@ -13,6 +13,7 @@ class PeopleDataKeys:
 
     MANAGER = "Manager"
     NAME = "Name"
+    NICK_NAME = NAME
     LEVEL = "Level"
     FUNCTION = "Function"
     PROJECT = "Project"
@@ -34,11 +35,14 @@ class PeopleDataKeysBellevue(PeopleDataKeys):
         PeopleDataKeys.__init__(self)
 
     NAME = "HR Name"
+    NICK_NAME = NAME
 
 
 class PeopleDataKeysWaltham(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
+    NAME = "HR Name"
+    NICK_NAME = "Name"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin"]
     FLOORS = { "Second Floor": ["Anderson, Vic", "Burnham, John", "Kostadinov, Alex", "Lin, Wayzen",
                                 "Pfahl, Matt"],
@@ -82,13 +86,13 @@ class PersonRowWrapper:
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.REQ).split(".")[0]
 
     def getFirstName(self):
-        fullName = self.getRawName()
+        fullName = self.getRawNickName()
         if "," in fullName:
             return " ".join(fullName.split(",")[1:])
         return fullName.split(" ")[0]
 
     def getLastName(self):
-        fullName = self.getRawName()
+        fullName = self.getRawNickName()
         if "," in fullName:
             return fullName.split(",")[0]
         return " ".join(fullName.split(" ")[1:])
@@ -98,6 +102,9 @@ class PersonRowWrapper:
 
     def getRawName(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NAME)
+
+    def getRawNickName(self):
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NICK_NAME)
 
     def isExpat(self):
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
@@ -170,9 +177,8 @@ class OrgParser:
 
     def getPerson(self, aRow):
         aPerson = PersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
-        if aPerson.getRawName() in self.managerList:
+        if aPerson.getRawName() in self.managerList or aPerson.getRawNickName() in self.managerList:
             aPerson.setManager()
-
         return aPerson
 
     def getDirectReports(self, managerName, productName=""):
