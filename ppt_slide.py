@@ -55,11 +55,7 @@ class DrawChartSlide:
             aGroup.setLeft(aGroup.getLeft() + leftAdjust)
 
     def addTitle(self, aSlide):
-        title = SlideTitleShape()
-        title.setLeft(0)
-        title.setWidth(DrawChartSlide.MAX_WIDTH_INCHES)
-        title.setTop(.35)
-        title.drawTitle(self.slideTitle, aSlide)
+        aSlide.shapes.title.text = self.slideTitle
 
     def drawSlide(self):
         if not self.groupList:
@@ -84,8 +80,8 @@ class GroupShapeDimensions:
     def __init__(self):
         pass
 
-    TOP = Inches(.75)
-    HEIGHT = Inches(4.8)
+    TOP = Inches(1.1)
+    HEIGHT = Inches(4.4)
     WIDTH = Inches(1.17)
     BUFFER_WIDTH = Inches(.05)
     BUFFER_HEIGHT = Inches(.4)

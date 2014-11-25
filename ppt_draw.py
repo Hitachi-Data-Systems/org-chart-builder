@@ -20,7 +20,7 @@ class OrgDraw:
         :type workbookPath: str
         :type sheetName: str
         """
-        self.presentation = Presentation()
+        self.presentation = Presentation('HDSPPTTemplate.pptx')
         self.presentation.slide_height = DrawChartSlide.MAX_HEIGHT_INCHES
         self.presentation.slide_width = DrawChartSlide.MAX_WIDTH_INCHES
         self.slideLayout = self.presentation.slide_layouts[6]
