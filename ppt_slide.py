@@ -210,7 +210,7 @@ class PeopleGroup(object):
             if not re.search('\d', aPerson.getRawName()):
                 aPersonRect.setTitle(aPerson.getReqNumber())
         else:
-            if aPerson.isExpat():
+            if aPerson.isExpat() or aPerson.isIntern():
                 aPersonRect.setTitle(aPerson.getProduct())
             else:
                 aPersonRect.setTitle(aPerson.getTitle())

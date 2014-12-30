@@ -217,7 +217,7 @@ class OrgParser:
             functionSet.add(functionName)
         return functionSet
 
-    def getFilteredPeople(self, productName=None, functionName=None, isExpat=None):
+    def getFilteredPeople(self, productName=None, functionName=None, isExpat=None, isIntern=None):
         """ Get all the people that match the criteria
 
         :type productName: str
@@ -231,6 +231,8 @@ class OrgParser:
             filterDict[self.peopleDataKeys.FUNCTION] = functionName
         if isExpat is not None:
             filterDict[self.peopleDataKeys.TYPE] = self.peopleDataKeys.EXPAT_TYPE
+        if isIntern is not None:
+            filterDict[self.peopleDataKeys.TYPE] = self.peopleDataKeys.INTERN_TYPE
 
         for aRow in self.spreadsheetParser.filteredDataRows(filterDict):
             matchingPeople.append(self.getPerson(aRow))

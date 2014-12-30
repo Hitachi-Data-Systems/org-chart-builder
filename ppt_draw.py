@@ -103,14 +103,21 @@ class OrgDraw:
 
     def drawExpat(self):
         expats = self.orgParser.getFilteredPeople(isExpat=True)
-        if not len(expats):
+        self._drawMiscGroups("ExPat", expats)
+
+    def drawIntern(self):
+        interns = self.orgParser.getFilteredPeople(isIntern=True)
+        self._drawMiscGroups("Intern", interns)
+
+    def _drawMiscGroups(self, slideName, peopleList):
+        if not len(peopleList):
             return
-        chartDrawer = DrawChartSlide(self.presentation, "ExPat", self.slideLayout)
+        chartDrawer = DrawChartSlide(self.presentation, slideName, self.slideLayout)
 
-        expatFunctions = set([expat.getFunction() for expat in expats])
+        peopleFunctions = set([aPerson.getFunction() for aPerson in peopleList])
 
-        for aFunction in expatFunctions:
-            self.buildGroup(aFunction, [expat for expat in expats if expat.getFunction() == aFunction], chartDrawer)
+        for aFunction in peopleFunctions:
+            self.buildGroup(aFunction, [aPerson for aPerson in peopleList if aPerson.getFunction() == aFunction], chartDrawer)
         chartDrawer.drawSlide()
 
     def drawCrossFunc(self):
@@ -169,7 +176,6 @@ class OrgDraw:
 
         return 0
 
-
     def getSortedFunctionalPeople(self, productName, functionName):
         functionPeople = self.orgParser.getFilteredPeople(productName, functionName)
         functionPeople = [person for person in functionPeople if not person.isExpat()]
@@ -214,7 +220,6 @@ class OrgDraw:
             functionName = orgchart_parser.NOT_SET
 
         chartDrawer.addGroup(functionName, functionPeople)
-
 
 def main(argv):
     userDir = os.environ.get("USERPROFILE") or os.environ.get("HOME")
@@ -275,15 +280,16 @@ def main(argv):
     orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode)
 
     orgDraw.drawAllProducts()
-    orgDraw.drawExpat()
     orgDraw.drawCrossFunc()
+    orgDraw.drawExpat()
+    orgDraw.drawIntern()
     orgDraw.drawAdmin()
     orgDraw.save(options.outputFile)
 
 
 if __name__ == "__main__":
     #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
-    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
+    sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:
