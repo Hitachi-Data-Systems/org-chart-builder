@@ -116,7 +116,6 @@ class OrgDraw:
     def drawCrossFunc(self):
         crossFuncPeople = []
 
-        # dbp: If we use CROSS_FUNCT_TEAM name for the Project, we could fold this into drawProduct?
         for aFunc in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
             crossFuncPeople.extend(self.orgParser.getFilteredPeople(functionName=aFunc))
 

@@ -7,6 +7,7 @@ __author__ = 'doreper'
 
 NOT_SET = "!!NOT SET!!"
 
+
 class PeopleDataKeys:
     def __init__(self):
         pass
@@ -20,13 +21,12 @@ class PeopleDataKeys:
     TYPE = "Type"
     REQ = "Requisition Number"
     CONSULTANT = "Consultant"
+    CONTRACTOR = "Contractor"
     EXPAT_TYPE = "Expat"
     INTERN_TYPE = "Intern"
 
     CROSS_FUNCTIONS = ["admin", "inf", "infrastructure"]
     CROSS_FUNCT_TEAM = "Cross"
-    CONSULTANT_DECORATOR = "**"
-    MANAGER_DECORATOR = "=="
     FLOORS = {}
 
 
@@ -34,20 +34,20 @@ class PeopleDataKeysBellevue(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
 
-    NAME = "HR Name"
-    NICK_NAME = NAME
+    CROSS_FUNCTIONS = ["admin", "inf", "infrastructure", "cross functional"]
 
 
 class PeopleDataKeysWaltham(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
+
     NAME = "HR Name"
     NICK_NAME = "Name"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin"]
-    FLOORS = { "Second Floor": ["Anderson, Vic", "Burnham, John", "Kostadinov, Alex", "Lin, Wayzen",
-                                "Pfahl, Matt"],
-               "Third Floor":  ["Chestna, Wayne", "Isherwood, Ben", "Kohli, Nishant", "Liang, Candy",
-                                "Lin, Wayzen", "Pannese, Donald", "Pinkney, Dave"]
+    FLOORS = {"Second Floor": ["Anderson, Vic", "Burnham, John", "Kostadinov, Alex", "Lin, Wayzen",
+                               "Pfahl, Matt"],
+              "Third Floor": ["Chestna, Wayne", "Isherwood, Ben", "Kohli, Nishant", "Liang, Candy",
+                              "Lin, Wayzen", "Pannese, Donald", "Pinkney, Dave"]
     }
 
 
@@ -65,7 +65,8 @@ class PersonRowWrapper:
         :return:
         """
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
-        return typeStr.lower() == self.peopleDataKeys.CONSULTANT.lower()
+        return (typeStr.lower() == self.peopleDataKeys.CONSULTANT.lower()) or (self.peopleDataKeys.CONTRACTOR.lower()
+                                                                               in typeStr.lower())
 
     def setManager(self):
         """
@@ -125,9 +126,9 @@ class PersonRowWrapper:
 
     def __lt__(self, other):
         if self.isIntern() and not other.isIntern():
-            return False;
+            return False
         elif not self.isIntern() and other.isIntern():
-            return True;
+            return True
 
         if self.getFullName().startswith("TBH"):
             if other.getFullName().startswith("TBH"):
@@ -161,6 +162,9 @@ class OrgParser:
         self.peopleDataKeys = PeopleDataKeys
         if "waltham" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysWaltham
+
+        if "bellevue" in workbookName.lower():
+            self.peopleDataKeys = PeopleDataKeysBellevue
 
         self.spreadsheetParser = SpreadsheetParser(workbookName, dataSheetName)
         self.managerList = self.getManagerSet()
