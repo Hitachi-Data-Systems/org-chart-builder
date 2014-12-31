@@ -4,7 +4,7 @@ import argparse
 import glob
 import os
 
-from orgchart_parser import OrgParser
+from orgchart_parser import OrgParser, PeopleFilter
 import sys
 from pptx import Presentation
 import orgchart_parser
@@ -102,11 +102,11 @@ class OrgDraw:
             chartDrawer.drawSlide()
 
     def drawExpat(self):
-        expats = self.orgParser.getFilteredPeople(isExpat=True)
+        expats = self.orgParser.getFilteredPeople(PeopleFilter().addIsExpatFilter())
         self._drawMiscGroups("ExPat", expats)
 
     def drawIntern(self):
-        interns = self.orgParser.getFilteredPeople(isIntern=True)
+        interns = self.orgParser.getFilteredPeople(PeopleFilter().addIsInternFilter())
         self._drawMiscGroups("Intern", interns)
 
     def _drawMiscGroups(self, slideName, peopleList):
@@ -124,7 +124,8 @@ class OrgDraw:
         crossFuncPeople = []
 
         for aFunc in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
-            crossFuncPeople.extend(self.orgParser.getFilteredPeople(functionName=aFunc))
+            crossFuncPeople.extend(self.orgParser.getFilteredPeople(
+                PeopleFilter().addFunctionFilter(aFunc)))
 
         if not len(crossFuncPeople):
             return
@@ -177,7 +178,9 @@ class OrgDraw:
         return 0
 
     def getSortedFunctionalPeople(self, productName, functionName):
-        functionPeople = self.orgParser.getFilteredPeople(productName, functionName)
+        peopleFilter = PeopleFilter()
+        peopleFilter.addProductFilter(productName).addFunctionFilter(functionName)
+        functionPeople = self.orgParser.getFilteredPeople(peopleFilter)
         functionPeople = [person for person in functionPeople if not person.isExpat()]
         functionPeople.sort()
         return functionPeople
@@ -289,7 +292,7 @@ def main(argv):
 
 if __name__ == "__main__":
     #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
-    sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
+    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from PeopleFilterCriteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria
 
 from spreadsheet_parser import SpreadsheetParser
 
@@ -217,24 +218,47 @@ class OrgParser:
             functionSet.add(functionName)
         return functionSet
 
-    def getFilteredPeople(self, productName=None, functionName=None, isExpat=None, isIntern=None):
-        """ Get all the people that match the criteria
+    def getFilteredPeople(self, peopleFilter=None):
+        """ Get all the people that match the filter
 
         :type productName: str
         :type functionName: str
         """
-        matchingPeople = []
-        filterDict = {}
-        if productName is not None:
-            filterDict[self.peopleDataKeys.PROJECT] = productName
-        if functionName is not None:
-            filterDict[self.peopleDataKeys.FUNCTION] = functionName
-        if isExpat is not None:
-            filterDict[self.peopleDataKeys.TYPE] = self.peopleDataKeys.EXPAT_TYPE
-        if isIntern is not None:
-            filterDict[self.peopleDataKeys.TYPE] = self.peopleDataKeys.INTERN_TYPE
+        if not peopleFilter:
+            peopleFilter = PeopleFilter()
 
-        for aRow in self.spreadsheetParser.filteredDataRows(filterDict):
-            matchingPeople.append(self.getPerson(aRow))
+        matchingPeople = []
+
+        for aRow in self.spreadsheetParser.dataRows():
+            aPerson = self.getPerson(aRow)
+            if peopleFilter.isMatch(aPerson):
+                matchingPeople.append(aPerson)
 
         return matchingPeople
+
+class PeopleFilter:
+    def __init__(self):
+        self.filterList = []
+
+    def addProductFilter(self, productName):
+        self.filterList.append(ProductCriteria(productName))
+        return self
+
+    def addFunctionFilter(self, functionName):
+        self.filterList.append(FunctionalGroupCriteria(functionName))
+        return self
+
+    def addIsInternFilter(self):
+        self.filterList.append(IsInternCriteria())
+        return self
+
+    def addIsExpatFilter(self):
+        self.filterList.append(IsExpatCriteria())
+        return self
+
+    def isMatch(self, aPerson):
+        for criterion in self.filterList:
+            if not criterion.matches(aPerson):
+                return False
+        return True
+
