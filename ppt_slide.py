@@ -1,8 +1,9 @@
 import math
+import datetime
 from pptx.dml.color import RGBColor
-from pptx.util import Inches
+from pptx.util import Inches, Pt
 import re
-from shape import RectangleBuilder, ColorPicker, SlideTitleShape
+from shape import RectangleBuilder, ColorPicker
 
 __author__ = 'David Oreper'
 
@@ -55,7 +56,22 @@ class DrawChartSlide:
             aGroup.setLeft(aGroup.getLeft() + leftAdjust)
 
     def addTitle(self, aSlide):
+
         aSlide.shapes.title.text = self.slideTitle
+
+        effectiveDateRun = aSlide.shapes.title.textframe.paragraphs[0].add_run()
+
+        # A little ugly but does the trick - add suffix to the number: 2 -> 2nd
+        # http://stackoverflow.com/a/20007730
+        suffixFormatter = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
+        ordinalDay = suffixFormatter(int(datetime.datetime.now().strftime("%d").lstrip("0")))
+
+        month = datetime.datetime.now().strftime("%B")
+        effectiveDateRun.text = "\rEffective {} {}".format(month, ordinalDay)
+        effectiveDateRun.font.size = Pt(11)
+        effectiveDateRun.font.italic = True
+        effectiveDateRun.font.bold = False
+
 
     def drawSlide(self):
         if not self.groupList:
