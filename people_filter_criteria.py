@@ -14,7 +14,7 @@ class KeyMatchesCriteria(FilterCriteria):
         self.expectedValue = expectedValue
 
     def _matches(self, actualValue):
-        return actualValue == self.expectedValue
+        return actualValue.lower() == self.expectedValue.lower()
 
 
 class ProductCriteria(KeyMatchesCriteria):
