@@ -57,10 +57,11 @@ class OrgDraw:
         :type aManagerName: str
         :return:
         """
-        directReports = self.orgParser.getDirectReports(aManagerName)
-        directReports.sort()
-        directReports = [person for person in directReports if not person.getRawName().strip().startswith("TBH")]
-        directReports = [person for person in directReports if not person.getRawName().strip().startswith("TBD")]
+        peopleFilter = PeopleFilter()
+        peopleFilter.addManagerFilter(aManagerName)
+        peopleFilter.addIsTBHFilter(False)
+        directReports = self.orgParser.getFilteredPeople(peopleFilter)
+
         return directReports
 
     def drawAdmin(self):
@@ -68,7 +69,7 @@ class OrgDraw:
         completedManagers = set()
 
         for aFloor in self.orgParser.peopleDataKeys.FLOORS.keys():
-            chartDrawer = DrawChartSlide(self.presentation, "Admin {}".format(aFloor), self.slideLayout)
+            chartDrawer = DrawChartSlide(self.presentation, "{} Admin {}".format(self.orgParser.orgName, aFloor), self.slideLayout)
             managerList = self.orgParser.peopleDataKeys.FLOORS[aFloor]
             managerList.sort(cmp=self._sortManagers)
             for aManagerName in managerList:
@@ -88,7 +89,7 @@ class OrgDraw:
         managersLeft.sort(cmp=self._sortManagers)
 
         if len(managersLeft):
-            chartDrawer = DrawChartSlide(self.presentation, "Admin", self.slideLayout)
+            chartDrawer = DrawChartSlide(self.presentation, "{} Admin".format(self.orgParser.orgName), self.slideLayout)
             for aManagerName in managersLeft:
                 directReports = self._getDirects(aManagerName)
                 if not len(directReports):
@@ -135,29 +136,24 @@ class OrgDraw:
         functions = set([aPerson.getFunction() for aPerson in crossFuncPeople])
 
         for aFunction in functions:
-            # This is a little redundant because we already got a broader list above, but lets
-            # us reuse the logic for creating the sorted list
-            funcPeople = self.getSortedFunctionalPeople(None, aFunction)
+            peopleFilter = PeopleFilter()
+            peopleFilter.addFunctionFilter(aFunction)
+            peopleFilter.addIsCrossFuncFilter()
+            peopleFilter.addIsExpatFilter(False)
+            peopleFilter.addIsInternFilter(False)
+
+            funcPeople = self.orgParser.getFilteredPeople(peopleFilter)
             self.buildGroup(aFunction, funcPeople, chartDrawer)
         chartDrawer.drawSlide()
 
-    def drawAllProducts(self):
+    def drawAllProducts(self, drawFeatureTeams):
         productList = list(self.orgParser.getProductSet())
         if self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM in productList:
             productList.remove(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM)
         productList.sort()
 
         for aProductName in productList:
-            if aProductName:
-                slideTitle = "%s - Functional Teams" % aProductName
-            else:
-                # skip empty products unless we're in draft mode
-                if not self.draftMode:
-                    continue
-                slideTitle = orgchart_parser.NOT_SET
-
-            chartDrawer = DrawChartSlide(self.presentation, slideTitle, self.slideLayout)
-            self.drawProduct(aProductName, chartDrawer)
+            self.drawProduct(aProductName, drawFeatureTeams)
 
     def sortByFunc(self, a, b):
         funcOrder = ["lead", "head coach", "po", "product owner", "technology", "ta", "tech", "sw architecture", "dev",
@@ -177,33 +173,58 @@ class OrgDraw:
 
         return 0
 
-    def getSortedFunctionalPeople(self, productName, functionName):
-        peopleFilter = PeopleFilter()
-        peopleFilter.addProductFilter(productName).addFunctionFilter(functionName)
-        functionPeople = self.orgParser.getFilteredPeople(peopleFilter)
-        functionPeople = [person for person in functionPeople if not person.isExpat()]
-        functionPeople.sort()
-        return functionPeople
-
-    def drawProduct(self, productName, chartDrawer):
+    def drawProduct(self, productName, drawFeatureTeams=False):
         """
 
         :type productName: str
         :type chartDrawer: ppt_draw.DrawChartSlide
         """
+        teamName = ""
+        if not productName:
+            if not self.draftMode:
+                return
+
+        featureTeamList = [""]
+        if drawFeatureTeams:
+            featureTeamList = list(self.orgParser.getFeatureTeamSet(productName))
         functionList = list(self.orgParser.getFunctionSet(productName))
         functionList.sort(cmp=self.sortByFunc)
-        for aFunction in functionList:
-            if aFunction.lower() in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
-                continue
 
-            functionPeople = self.getSortedFunctionalPeople(productName, aFunction)
-            if not functionPeople:
-                print "WARNING: No members added to '{}' for product: '{}'".format(aFunction, productName)
-                continue
-            self.buildGroup(aFunction, functionPeople, chartDrawer)
+        for aFeatureTeam in featureTeamList:
+            if not productName:
+                slideTitle = orgchart_parser.NOT_SET
+            elif drawFeatureTeams:
+                teamName = "- {} ".format(aFeatureTeam)
+                if not aFeatureTeam:
+                    if len(featureTeamList) > 1:
+                        teamName = "- Cross "
+                    else:
+                        teamName = ""
+                slideTitle = "{} {}Feature Team".format(productName, teamName)
+            else:
+                slideTitle = "{} Functional Team".format(productName)
 
-        chartDrawer.drawSlide()
+            chartDrawer = DrawChartSlide(self.presentation, slideTitle, self.slideLayout)
+            for aFunction in functionList:
+                if aFunction.lower() in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
+                    continue
+
+                peopleFilter = PeopleFilter()
+                peopleFilter.addProductFilter(productName)
+                peopleFilter.addFunctionFilter(aFunction)
+                peopleFilter.addIsExpatFilter(False)
+                peopleFilter.addIsInternFilter(False)
+                if drawFeatureTeams:
+                    peopleFilter.addFeatureTeamFilter(aFeatureTeam)
+
+                functionPeople = self.orgParser.getFilteredPeople(peopleFilter)
+
+                if not functionPeople:
+                    print "WARNING: No members added to '{}' for product: '{}{}'".format(aFunction, productName, teamName)
+                    continue
+                self.buildGroup(aFunction, functionPeople, chartDrawer)
+
+            chartDrawer.drawSlide()
 
     def buildGroup(self, functionName, functionPeople, chartDrawer):
         """
@@ -228,7 +249,7 @@ def main(argv):
     userDir = os.environ.get("USERPROFILE") or os.environ.get("HOME")
     defaultSheetName = "PeopleData"
     defaultDir = os.path.join(userDir, "Documents/HCP Anywhere/Org Charts and Hiring History")
-    defaultOutputFile = "orgChart.pptx"
+    defaultOutputFile = "OrgChart.pptx"
 
     examples = """
     Examples:
@@ -253,7 +274,9 @@ def main(argv):
 
     parser.add_argument("-s", "--sheetName", type=str, default=defaultSheetName, help="Sheet Name")
 
-    parser.add_argument("-o", "--outputFile", type=str, default=defaultOutputFile, help="output file")
+    parser.add_argument("-o", "--outputFile", type=str, default=None, help="output file")
+    parser.add_argument("-f", "--featureTeam", action="store_true", default=False, help="Show products by feature team")
+
 
     parser.add_argument("--draftMode", type=bool, default=False,
                         help="Show {} for people that don't have manager, product, function set. Otherwise, "
@@ -282,17 +305,21 @@ def main(argv):
 
     orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode)
 
-    orgDraw.drawAllProducts()
+    orgDraw.drawAllProducts(options.featureTeam)
     orgDraw.drawCrossFunc()
     orgDraw.drawExpat()
     orgDraw.drawIntern()
     orgDraw.drawAdmin()
-    orgDraw.save(options.outputFile)
+
+    outputFileName = options.outputFile
+    if not outputFileName:
+        outputFileName = "{}{}".format(orgDraw.orgParser.orgName, defaultOutputFile)
+    orgDraw.save(outputFileName)
 
 
 if __name__ == "__main__":
-    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm']
-    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
+    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm', "-f"]
+    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:

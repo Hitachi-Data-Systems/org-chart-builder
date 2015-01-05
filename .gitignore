@@ -9,4 +9,5 @@
 *.out
 
 workspace.xml
-orgChart.pptx
+*.pptx
+*/dictionaries

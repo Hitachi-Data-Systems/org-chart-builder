@@ -1,5 +1,7 @@
 #!/usr/bin/python
-from PeopleFilterCriteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria
+import os
+from people_filter_criteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria, \
+    FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria
 
 from spreadsheet_parser import SpreadsheetParser
 
@@ -19,6 +21,7 @@ class PeopleDataKeys:
     LEVEL = "Level"
     FUNCTION = "Function"
     PROJECT = "Project"
+    FEATURE_TEAM = "Feature Team"
     TYPE = "Type"
     REQ = "Requisition Number"
     CONSULTANT = "Consultant"
@@ -61,8 +64,6 @@ class PersonRowWrapper:
 
     def isConsultant(self):
         """
-
-
         :return:
         """
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
@@ -71,8 +72,6 @@ class PersonRowWrapper:
 
     def setManager(self):
         """
-
-
         """
         self.manager = True
 
@@ -85,28 +84,32 @@ class PersonRowWrapper:
         return self.manager
 
     def getReqNumber(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.REQ).split(".")[0]
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.REQ).split(".")[0].strip()
 
-    def getFirstName(self):
-        fullName = self.getRawNickName()
-        if "," in fullName:
-            return " ".join(fullName.split(",")[1:])
-        return fullName.split(" ")[0]
+    def getFirstName(self, aName=None):
+        if not aName:
+            aName = self.getRawNickName()
 
-    def getLastName(self):
-        fullName = self.getRawNickName()
-        if "," in fullName:
-            return fullName.split(",")[0]
-        return " ".join(fullName.split(" ")[1:])
+        if "," in aName:
+            return " ".join(aName.split(",")[1:]).strip()
+        return aName.split(" ")[0].strip()
+
+    def getLastName(self, aName=None):
+        if not aName:
+            aName = self.getRawNickName()
+
+        if "," in aName:
+            return aName.split(",")[0].strip()
+        return " ".join(aName.split(" ")[1:]).strip()
 
     def getFullName(self):
-        return "{} {}".format(self.getFirstName(), self.getLastName())
+        return "{} {}".format(self.getFirstName(), self.getLastName()).strip()
 
     def getRawName(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NAME)
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NAME).strip()
 
     def getRawNickName(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NICK_NAME)
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NICK_NAME).strip()
 
     def isExpat(self):
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
@@ -116,14 +119,42 @@ class PersonRowWrapper:
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
         return typeStr.lower() == self.peopleDataKeys.INTERN_TYPE.lower()
 
+    def isTBH(self):
+        if (self.getFullName().lower().startswith("tbh")
+            or self.getFullName().lower().startswith("tbd")):
+            return True
+        return False
+
+    def isCrossFunc(self):
+        return ((self.getFunction().lower() in self.peopleDataKeys.CROSS_FUNCTIONS)
+                or (self.getProduct().lower() == self.peopleDataKeys.CROSS_FUNCT_TEAM.lower()))
+
     def getTitle(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LEVEL)
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LEVEL).strip()
 
     def getFunction(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.FUNCTION)
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.FUNCTION).strip()
+
+    def getFeatureTeam(self):
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.FEATURE_TEAM).strip()
+
+    def getManagerRawName(self):
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.MANAGER).strip()
+
+    def getManagerFullName(self):
+        """ Return the manager name in the form [first] [last], even if it's listed as [last],[first]
+        in source data
+        """
+        managerRawName = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.MANAGER)
+        if not managerRawName:
+            return ""
+        return "{} {}".format(self.getFirstName(managerRawName), self.getLastName(managerRawName)).strip()
 
     def getProduct(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.PROJECT)
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.PROJECT).strip()
+
+    def __str__(self):
+        return "Person: {}".format(self.getFullName())
 
     def __lt__(self, other):
         if self.isIntern() and not other.isIntern():
@@ -131,15 +162,10 @@ class PersonRowWrapper:
         elif not self.isIntern() and other.isIntern():
             return True
 
-        if self.getFullName().startswith("TBH"):
-            if other.getFullName().startswith("TBH"):
-                return self.getFullName() < other.getFullName()
+        if self.isTBH() and not other.isTBH():
             return False
-
-        if self.getFullName().startswith("TBD"):
-            if other.getFullName().startswith("TBD"):
-                return self.getFullName() < other.getFullName()
-            return False
+        elif not self.isTBH() and other.isTBH():
+            return True
 
         return self.getFullName() < other.getFullName()
 
@@ -161,6 +187,8 @@ class OrgParser:
         :type dataSheetName: str
         """
         self.peopleDataKeys = PeopleDataKeys
+        self.orgName = os.path.basename(workbookName.split("Staff")[0].strip())
+
         if "waltham" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysWaltham
 
@@ -182,63 +210,61 @@ class OrgParser:
 
     def getPerson(self, aRow):
         aPerson = PersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
-        if aPerson.getRawName() in self.managerList or aPerson.getRawNickName() in self.managerList:
+        if (aPerson.getRawName() in self.managerList
+            or aPerson.getRawNickName() in self.managerList
+            or aPerson.getFullName() in self.managerList):
             aPerson.setManager()
         return aPerson
-
-    def getDirectReports(self, managerName, productName=""):
-        directReportList = []
-        filterDict = {self.peopleDataKeys.MANAGER: managerName}
-        if productName:
-            filterDict[self.peopleDataKeys.PROJECT] = productName
-        directReportRows = self.spreadsheetParser.filteredDataRows(filterDict)
-        for aDirectReport in directReportRows:
-            directReportList.append(self.getPerson(aDirectReport))
-        return directReportList
 
     def getProductSet(self):
         """
 
         :return:
         """
-        productList = set()
-        for aRow in self.spreadsheetParser.dataRows():
-            productName = self.spreadsheetParser.getColValueByName(aRow, self.peopleDataKeys.PROJECT)
-            productList.add(productName)
-        return productList
+        productSet = set()
+        for aPerson in self.getPeople():
+            productSet.add(aPerson.getProduct())
+        return productSet
+
+    def getFeatureTeamSet(self, productName):
+        featureSet = set()
+        for aPerson in self.getFilteredPeople(PeopleFilter().addProductFilter(productName)):
+            featureSet.add(aPerson.getFeatureTeam())
+        return featureSet
 
     def getFunctionSet(self, productName=None):
         functionSet = set()
-        for aRow in self.spreadsheetParser.dataRows():
-            functionName = self.spreadsheetParser.getColValueByName(aRow, self.peopleDataKeys.FUNCTION)
-            if productName:
-                if self.spreadsheetParser.getColValueByName(aRow, self.peopleDataKeys.PROJECT) != productName:
-                    continue
-
-            functionSet.add(functionName)
+        for aPerson in self.getFilteredPeople(PeopleFilter().addProductFilter(productName)):
+            functionSet.add(aPerson.getFunction())
         return functionSet
+
+    def getPeople(self):
+        for aRow in self.spreadsheetParser.dataRows():
+            aPerson = self.getPerson(aRow)
+            yield aPerson
 
     def getFilteredPeople(self, peopleFilter=None):
         """ Get all the people that match the filter
-
-        :type productName: str
-        :type functionName: str
         """
         if not peopleFilter:
             peopleFilter = PeopleFilter()
 
         matchingPeople = []
 
-        for aRow in self.spreadsheetParser.dataRows():
-            aPerson = self.getPerson(aRow)
+        for aPerson in self.getPeople():
             if peopleFilter.isMatch(aPerson):
                 matchingPeople.append(aPerson)
-
+        matchingPeople.sort()
         return matchingPeople
+
 
 class PeopleFilter:
     def __init__(self):
         self.filterList = []
+
+    def addManagerFilter(self, managerName):
+        self.filterList.append(ManagerCriteria(managerName))
+        return self
 
     def addProductFilter(self, productName):
         self.filterList.append(ProductCriteria(productName))
@@ -248,12 +274,24 @@ class PeopleFilter:
         self.filterList.append(FunctionalGroupCriteria(functionName))
         return self
 
-    def addIsInternFilter(self):
-        self.filterList.append(IsInternCriteria())
+    def addFeatureTeamFilter(self, featureTeam):
+        self.filterList.append(FeatureTeamCriteria(featureTeam))
         return self
 
-    def addIsExpatFilter(self):
-        self.filterList.append(IsExpatCriteria())
+    def addIsInternFilter(self, isIntern=True):
+        self.filterList.append(IsInternCriteria(isIntern))
+        return self
+
+    def addIsCrossFuncFilter(self, isCrossFunc=True):
+        self.filterList.append(IsCrossFuncCriteria(isCrossFunc))
+        return self
+
+    def addIsExpatFilter(self, isExpat=True):
+        self.filterList.append(IsExpatCriteria(isExpat))
+        return self
+
+    def addIsTBHFilter(self, isTBH=True):
+        self.filterList.append(IsTBHCriteria(isTBH))
         return self
 
     def isMatch(self, aPerson):
