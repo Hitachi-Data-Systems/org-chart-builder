@@ -23,7 +23,7 @@ class OrgDraw:
         self.presentation = Presentation('HDSPPTTemplate.pptx')
         self.presentation.slide_height = DrawChartSlide.MAX_HEIGHT_INCHES
         self.presentation.slide_width = DrawChartSlide.MAX_WIDTH_INCHES
-        self.slideLayout = self.presentation.slide_layouts[6]
+        self.slideLayout = self.presentation.slide_layouts[4]
         self.orgParser = OrgParser(workbookPath, sheetName)
         self.draftMode = draftMode
 
@@ -156,7 +156,7 @@ class OrgDraw:
             self.drawProduct(aProductName, drawFeatureTeams)
 
     def sortByFunc(self, a, b):
-        funcOrder = ["lead", "head coach", "po", "product owner", "technology", "ta", "tech", "sw architecture", "dev",
+        funcOrder = ["lead", "head coach", "po", "product owner", "product owner/qa", "technology", "ta", "tech", "sw architecture", "dev",
                      "development", "qa", "quality assurance", "stress",
                      "characterization", "auto", "aut", "automation", "sustaining", "solutions and sustaining",
                      "ui", "ux", "ui/ux", "inf", "infrastructure", "devops", "cross functional", "cross", "doc",
@@ -212,10 +212,12 @@ class OrgDraw:
                 peopleFilter = PeopleFilter()
                 peopleFilter.addProductFilter(productName)
                 peopleFilter.addFunctionFilter(aFunction)
-                peopleFilter.addIsExpatFilter(False)
-                peopleFilter.addIsInternFilter(False)
+
                 if drawFeatureTeams:
                     peopleFilter.addFeatureTeamFilter(aFeatureTeam)
+                else:
+                    peopleFilter.addIsExpatFilter(False)
+                    peopleFilter.addIsInternFilter(False)
 
                 functionPeople = self.orgParser.getFilteredPeople(peopleFilter)
 
@@ -307,8 +309,9 @@ def main(argv):
 
     orgDraw.drawAllProducts(options.featureTeam)
     orgDraw.drawCrossFunc()
-    orgDraw.drawExpat()
-    orgDraw.drawIntern()
+    if not options.featureTeam:
+        orgDraw.drawExpat()
+        orgDraw.drawIntern()
     orgDraw.drawAdmin()
 
     outputFileName = options.outputFile

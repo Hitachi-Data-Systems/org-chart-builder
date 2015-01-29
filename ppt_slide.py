@@ -97,7 +97,7 @@ class GroupShapeDimensions:
         pass
 
     TOP = Inches(1.1)
-    HEIGHT = Inches(4.4)
+    HEIGHT = Inches(4.3)
     WIDTH = Inches(1.17)
     BUFFER_WIDTH = Inches(.05)
     BUFFER_HEIGHT = Inches(.4)
