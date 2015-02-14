@@ -29,18 +29,22 @@ class FeatureTeamCriteria(KeyMatchesCriteria):
     def matches(self, aPerson):
         return self._matches(aPerson.getFeatureTeam())
 
-class ManagerCriteria(KeyMatchesCriteria):
-    def getNormalizedFullName(self, aName):
-        fullName = aName
-        if "," in aName:
-            firstName = aName.split(",")[1]
-            lastName = aName.split(",")[0]
-            fullName = "{} {}".format(firstName, lastName)
-        return fullName.strip()
+class LocationCriteria(KeyMatchesCriteria):
+    def matches(self, aPerson):
+        return self._matches(aPerson.getLocation())
+
+class ManagerCriteria(FilterCriteria):
+    def __init__(self, manager):
+        FilterCriteria.__init__(self)
+        self.manager = manager
 
     def matches(self, aPerson):
-        self.expectedValue = self.getNormalizedFullName(self.expectedValue)
-        return self._matches(aPerson.getManagerFullName())
+        personManager = aPerson.getManagerFullName()
+
+        return (personManager == self.manager.getFullName()
+                    or personManager == self.manager.getRawName()
+                    or personManager == self.manager.getRawNickName()
+                    or personManager == self.manager.getNormalizedRawName())
 
 class IsInternCriteria(FilterCriteria):
     def __init__(self, isIntern):
@@ -66,7 +70,6 @@ class IsTBHCriteria(FilterCriteria):
     def matches(self, aPerson):
         return aPerson.isTBH() == self.isTBH
 
-
 class IsCrossFuncCriteria(FilterCriteria):
     def __init__(self, isCrossFunc):
         FilterCriteria.__init__(self)
@@ -74,5 +77,13 @@ class IsCrossFuncCriteria(FilterCriteria):
 
     def matches(self, aPerson):
         return aPerson.isCrossFunc() == self.isCrossFunc
+
+class IsManagerCriteria(FilterCriteria):
+    def __init__(self, isManager):
+        FilterCriteria.__init__(self)
+        self.isManager = isManager
+
+    def matches(self, aPerson):
+        return aPerson.isManager() == self.isManager
 
 

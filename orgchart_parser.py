@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os
 from people_filter_criteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria, \
-    FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria
+    FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria, LocationCriteria, IsManagerCriteria
 
 from spreadsheet_parser import SpreadsheetParser
 
@@ -28,6 +28,7 @@ class PeopleDataKeys:
     CONTRACTOR = "Contractor"
     EXPAT_TYPE = "Expat"
     INTERN_TYPE = "Intern"
+    LOCATION = "Location"
 
     CROSS_FUNCTIONS = ["admin", "inf", "infrastructure"]
     CROSS_FUNCT_TEAM = "Cross"
@@ -102,11 +103,14 @@ class PersonRowWrapper:
             return aName.split(",")[0].strip()
         return " ".join(aName.split(" ")[1:]).strip()
 
-    def getFullName(self):
-        return "{} {}".format(self.getFirstName(), self.getLastName()).strip()
+    def getFullName(self, fullName=None):
+        return "{} {}".format(self.getFirstName(fullName), self.getLastName(fullName)).strip()
 
     def getRawName(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NAME).strip()
+
+    def getNormalizedRawName(self):
+        return "{} {}".format(self.getFirstName(self.getRawName()), self.getLastName(self.getRawName()))
 
     def getRawNickName(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NICK_NAME).strip()
@@ -153,6 +157,21 @@ class PersonRowWrapper:
     def getProduct(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.PROJECT).strip()
 
+    def getFloor(self):
+        for aFloor, managerNames in self.peopleDataKeys.FLOORS.iteritems():
+            for aManagerName in managerNames:
+                if (self.getFullName() == self.getFullName(aManagerName)
+                or (self.getRawName() == self.getFullName(aManagerName))
+                or (self.getNormalizedRawName() == self.getFullName(aManagerName))):
+                    return aFloor
+        return ""
+
+    def getLocation(self):
+        if not self.spreadsheetParser.columnExists(self.peopleDataKeys.LOCATION):
+            return ""
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LOCATION).strip()
+
+
     def __str__(self):
         return "Person: {}".format(self.getFullName())
 
@@ -178,6 +197,8 @@ class PersonRowWrapper:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __hash__(self):
+        return hash(self.getFullName())
 
 class OrgParser:
     def __init__(self, workbookName, dataSheetName):
@@ -238,6 +259,12 @@ class OrgParser:
             functionSet.add(aPerson.getFunction())
         return functionSet
 
+    def getLocationSet(self):
+        locationSet = set()
+        for aPerson in self.getPeople():
+            locationSet.add(aPerson.getLocation())
+        return locationSet
+
     def getPeople(self):
         for aRow in self.spreadsheetParser.dataRows():
             aPerson = self.getPerson(aRow)
@@ -252,7 +279,7 @@ class OrgParser:
         matchingPeople = []
 
         for aPerson in self.getPeople():
-            if peopleFilter.isMatch(aPerson):
+            if (aPerson.getRawNickName() or aPerson.getRawName()) and peopleFilter.isMatch(aPerson):
                 matchingPeople.append(aPerson)
         matchingPeople.sort()
         return matchingPeople
@@ -262,8 +289,9 @@ class PeopleFilter:
     def __init__(self):
         self.filterList = []
 
-    def addManagerFilter(self, managerName):
-        self.filterList.append(ManagerCriteria(managerName))
+
+    def addManagerFilter(self, manager):
+        self.filterList.append(ManagerCriteria(manager))
         return self
 
     def addProductFilter(self, productName):
@@ -276,6 +304,10 @@ class PeopleFilter:
 
     def addFeatureTeamFilter(self, featureTeam):
         self.filterList.append(FeatureTeamCriteria(featureTeam))
+        return self
+
+    def addIsManagerFilter(self, isManager=True):
+        self.filterList.append(IsManagerCriteria(isManager))
         return self
 
     def addIsInternFilter(self, isIntern=True):
@@ -292,6 +324,10 @@ class PeopleFilter:
 
     def addIsTBHFilter(self, isTBH=True):
         self.filterList.append(IsTBHCriteria(isTBH))
+        return self
+
+    def addLocationFilter(self, location):
+        self.filterList.append(LocationCriteria(location))
         return self
 
     def isMatch(self, aPerson):

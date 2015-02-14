@@ -30,77 +30,50 @@ class OrgDraw:
     def save(self, filename):
         self.presentation.save(filename)
 
-
-    def getFirstLastName(self, aName):
+    def _getDirects(self, aManager, location=None):
         """
 
-        :type aName: str
-        :return:
-        """
-        if "," in aName:
-            nameParts = aName.split(",")
-            aName = "{} {}".format(nameParts[-1], " ".join(nameParts[0:-1]))
-        return aName
-
-    def _sortManagers(self, a, b):
-        a = self.getFirstLastName(a)
-        b = self.getFirstLastName(b)
-        if a < b:
-            return -1
-        if b > a:
-            return 1
-        return 0
-
-    def _getDirects(self, aManagerName):
-        """
-
-        :type aManagerName: str
+        :type aManager: str
         :return:
         """
         peopleFilter = PeopleFilter()
-        peopleFilter.addManagerFilter(aManagerName)
+        directReports = []
+        peopleFilter.addManagerFilter(aManager)
         peopleFilter.addIsTBHFilter(False)
-        directReports = self.orgParser.getFilteredPeople(peopleFilter)
+        peopleFilter.addLocationFilter(location)
+        directReports.extend(self.orgParser.getFilteredPeople(peopleFilter))
 
         return directReports
 
     def drawAdmin(self):
-        managersLeft = self.orgParser.getManagerSet()
-        completedManagers = set()
+        managerList = self.orgParser.getFilteredPeople(PeopleFilter().addIsManagerFilter())
 
-        for aFloor in self.orgParser.peopleDataKeys.FLOORS.keys():
-            chartDrawer = DrawChartSlide(self.presentation, "{} Admin {}".format(self.orgParser.orgName, aFloor), self.slideLayout)
-            managerList = self.orgParser.peopleDataKeys.FLOORS[aFloor]
-            managerList.sort(cmp=self._sortManagers)
-            for aManagerName in managerList:
-                directReports = []
-                directReports.extend(self._getDirects(aManagerName))
-                completedManagers.add(aManagerName)
+        managersByFloor = {}
+        for aManager in managerList:
+            if not aManager.getFloor() in managersByFloor:
+                managersByFloor[aManager.getFloor()] = set()
+            managersByFloor[aManager.getFloor()].add(aManager)
 
-                aManagerName = self.getFirstLastName(aManagerName)
-                if not aManagerName:
-                    if not self.draftMode:
-                        continue
-                    aManagerName = orgchart_parser.NOT_SET
-                self.buildGroup(aManagerName, directReports, chartDrawer)
-            chartDrawer.drawSlide()
+        # Location: There can be people across locations reporting to the same manager:
+        # Example: People report to Arno in Santa Clara and in Milan.
+        # There will be a single slide for each unique location. Only direct reports in the specified location will be
+        # drawn
+        for aLocation in self.orgParser.getLocationSet():
+            locationName = aLocation or self.orgParser.orgName
 
-        managersLeft = list(set(managersLeft) - completedManagers)
-        managersLeft.sort(cmp=self._sortManagers)
-
-        if len(managersLeft):
-            chartDrawer = DrawChartSlide(self.presentation, "{} Admin".format(self.orgParser.orgName), self.slideLayout)
-            for aManagerName in managersLeft:
-                directReports = self._getDirects(aManagerName)
-                if not len(directReports):
-                    continue
-                aManagerName = self.getFirstLastName(aManagerName)
-                if not aManagerName:
-                    if not self.draftMode:
-                        continue
-                    aManagerName = orgchart_parser.NOT_SET
-                self.buildGroup(aManagerName, directReports, chartDrawer)
-            chartDrawer.drawSlide()
+            # Floor: The floor (or other grouping) that separates manager.
+            # Example: There are a lot of managers in Waltham so we break them up across floors
+            # NOTE: All of the direct reports in the location will be drawn
+            # Example: If Dave is on floor1 and floor2 in Waltham, then the same direct reports will be drawn both times
+            for aFloor, managerList in managersByFloor.iteritems():
+                chartDrawer = DrawChartSlide(self.presentation, "{} Admin {}".format(locationName, aFloor), self.slideLayout)
+                managerList = list(managerList)
+                managerList.sort()
+                for aManager in managerList:
+                    directReports = []
+                    directReports.extend(self._getDirects(aManager, aLocation))
+                    self.buildGroup(aManager.getFullName(), directReports, chartDrawer)
+                chartDrawer.drawSlide()
 
     def drawExpat(self):
         expats = self.orgParser.getFilteredPeople(PeopleFilter().addIsExpatFilter())
@@ -322,7 +295,8 @@ def main(argv):
 
 if __name__ == "__main__":
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SantaClara Staff.xlsm', "-f"]
-    # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\WalthamStaff.xlsm']
+    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm']
+    #sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham\WalthamStaff.xlsm']
     # sys.argv = ["", 'Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue Staff.xlsm']
     #
     # for davep:
