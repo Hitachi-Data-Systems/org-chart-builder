@@ -39,13 +39,13 @@ class PeopleDataKeysBellevue(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
 
-    CROSS_FUNCTIONS = ["admin", "inf", "infrastructure", "cross functional"]
+    CROSS_FUNCTIONS = ["technology", "admin", "inf", "infrastructure", "cross functional"]
 
 
 class PeopleDataKeysWaltham(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-
+    FUNCTION = "Function - Actual"
     NAME = "HR Name"
     NICK_NAME = "Name"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin"]
@@ -129,6 +129,12 @@ class PersonRowWrapper:
             return True
         return False
 
+    def isUnfunded(self):
+        if (self.getFullName().lower().startswith("unfunded")
+            or self.getFullName().lower().startswith("unfunded")):
+            return True
+        return False
+
     def isCrossFunc(self):
         return ((self.getFunction().lower() in self.peopleDataKeys.CROSS_FUNCTIONS)
                 or (self.getProduct().lower() == self.peopleDataKeys.CROSS_FUNCT_TEAM.lower()))
@@ -169,13 +175,21 @@ class PersonRowWrapper:
     def getLocation(self):
         if not self.spreadsheetParser.columnExists(self.peopleDataKeys.LOCATION):
             return ""
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LOCATION).strip()
-
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LOCATION).strip() or ""
 
     def __str__(self):
         return "Person: {}".format(self.getFullName())
 
+    def __repr__(self):
+        return self.__str__()
+
     def __lt__(self, other):
+
+        if self.isUnfunded() and not other.isUnfunded():
+            return False
+        elif not self.isUnfunded() and other.isUnfunded():
+            return True
+
         if self.isIntern() and not other.isIntern():
             return False
         elif not self.isIntern() and other.isIntern():
@@ -185,6 +199,9 @@ class PersonRowWrapper:
             return False
         elif not self.isTBH() and other.isTBH():
             return True
+
+
+
 
         return self.getFullName() < other.getFullName()
 
@@ -226,7 +243,8 @@ class OrgParser:
         managerSet = set()
         for aRow in self.spreadsheetParser.dataRows():
             managerName = self.spreadsheetParser.getColValueByName(aRow, self.peopleDataKeys.MANAGER)
-            managerSet.add(managerName)
+            if managerName:
+                managerSet.add(managerName)
         return managerSet
 
     def getPerson(self, aRow):
@@ -259,9 +277,13 @@ class OrgParser:
             functionSet.add(aPerson.getFunction())
         return functionSet
 
-    def getLocationSet(self):
+    def getLocationSet(self, productName=""):
         locationSet = set()
-        for aPerson in self.getPeople():
+        filter = PeopleFilter()
+        if productName:
+            filter.addProductFilter(productName)
+
+        for aPerson in self.getFilteredPeople():
             locationSet.add(aPerson.getLocation())
         return locationSet
 

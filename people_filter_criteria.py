@@ -11,7 +11,7 @@ class FilterCriteria:
 class KeyMatchesCriteria(FilterCriteria):
     def __init__(self, expectedValue):
         FilterCriteria.__init__(self)
-        self.expectedValue = expectedValue
+        self.expectedValue = expectedValue or ""
 
     def _matches(self, actualValue):
         return actualValue.lower() == self.expectedValue.lower()
@@ -41,10 +41,14 @@ class ManagerCriteria(FilterCriteria):
     def matches(self, aPerson):
         personManager = aPerson.getManagerFullName()
 
-        return (personManager == self.manager.getFullName()
-                    or personManager == self.manager.getRawName()
-                    or personManager == self.manager.getRawNickName()
-                    or personManager == self.manager.getNormalizedRawName())
+        if self.manager:
+            return ( personManager == self.manager.getFullName()
+                        or personManager == self.manager.getRawName()
+                        or personManager == self.manager.getRawNickName()
+                        or personManager == self.manager.getNormalizedRawName())
+
+        return not personManager
+
 
 class IsInternCriteria(FilterCriteria):
     def __init__(self, isIntern):
