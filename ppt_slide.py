@@ -14,7 +14,7 @@ class DrawChartSlide:
     PAGE_BUFFER = Inches(.2)
     RIGHT_EDGE = MAX_WIDTH_INCHES - PAGE_BUFFER
 
-    def __init__(self, aPresentation, slideTitle, slideLayout):
+    def __init__(self, aPresentation, slideTitle, slideLayout, teamModelText=None):
         """
 
         :type aPresentation: pptx.api.Presentation
@@ -26,9 +26,9 @@ class DrawChartSlide:
         self.slideLayout = slideLayout
         self.colorPicker = ColorPicker()
         self.groupList = []
-
         self.groupLeft = Inches(.2)
         self.groupTop = GroupShapeDimensions.TOP
+        self.teamModelText = teamModelText
 
     def addGroup(self, title, groupMembers):
         peopleGroup = PeopleGroup(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
@@ -59,6 +59,10 @@ class DrawChartSlide:
 
         aSlide.shapes.title.text = self.slideTitle
 
+        modelText = ""
+        if self.teamModelText:
+            modelText = "\tModel: {}".format(self.teamModelText)
+
         effectiveDateRun = aSlide.shapes.title.textframe.paragraphs[0].add_run()
 
         # A little ugly but does the trick - add suffix to the number: 2 -> 2nd
@@ -67,7 +71,7 @@ class DrawChartSlide:
         ordinalDay = suffixFormatter(int(datetime.datetime.now().strftime("%d").lstrip("0")))
 
         month = datetime.datetime.now().strftime("%B")
-        effectiveDateRun.text = "\rEffective {} {}".format(month, ordinalDay)
+        effectiveDateRun.text = "\rEffective {} {} {}".format(month, ordinalDay, modelText)
         effectiveDateRun.font.size = Pt(11)
         effectiveDateRun.font.italic = True
         effectiveDateRun.font.bold = False

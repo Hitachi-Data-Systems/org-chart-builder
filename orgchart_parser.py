@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import os
+import sys
+
 from people_filter_criteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria, \
     FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria, LocationCriteria, IsManagerCriteria
 
@@ -12,8 +14,8 @@ NOT_SET = "!!NOT SET!!"
 
 
 class PeopleDataKeys:
-    def __init__(self):
-        pass
+    def __init__(self, useActualFunction):
+        self.useActualFunction = useActualFunction
 
     MANAGER = "Manager"
     NAME = "Name"
@@ -33,11 +35,11 @@ class PeopleDataKeys:
     CROSS_FUNCTIONS = ["admin", "inf", "infrastructure"]
     CROSS_FUNCT_TEAM = "Cross"
     FLOORS = {}
-
+    TEAM_MODEL = {}
 
 class PeopleDataKeysBellevue(PeopleDataKeys):
-    def __init__(self):
-        PeopleDataKeys.__init__(self)
+    def __init__(self, useActualFunction):
+        PeopleDataKeys.__init__(self, useActualFunction)
 
     CROSS_FUNCTIONS = ["technology", "admin", "inf", "infrastructure", "cross functional"]
 
@@ -48,12 +50,30 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
     FUNCTION = "Function - Actual"
     NAME = "HR Name"
     NICK_NAME = "Name"
+    FUNCTION_ACTUAL = "Function - Actual"
+    FUNCTION_MODEL = "Function - Model"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin"]
-    FLOORS = {"Second Floor": ["Anderson, Vic", "Burnham, John", "Kostadinov, Alex", "Lin, Wayzen",
-                               "Pfahl, Matt"],
-              "Third Floor": ["Chestna, Wayne", "Isherwood, Ben", "Kohli, Nishant", "Liang, Candy",
-                              "Lin, Wayzen", "Pannese, Donald", "Pinkney, Dave"]
-    }
+    FLOORS = {"Second Floor": ["Anderson, Vic", "Burnham, John", 
+                               "Pfahl, Matt", "Kohli, Nishant", "Lin, Wayzen"],
+              "Third Floor Part 1": [ "Isherwood, Ben", "Liang, Candy", "Chestna, Wayne", "Pannese, Donald"],
+              "Third Floor Part 2": [ "Hartford, Joe",  "Pinkney, Dave", "Van Thong, Adrien", "Kostadinov, Alex"]
+          }
+
+    TEAM_MODEL = {
+        "Ensemble" : "2 Tracks @ (1 PO, 3 Dev, 1 QA, 1 Char, 1 Auto)",
+        "HCP" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "HCP (Rhino)" : "2 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 1 Auto)",
+        }
+
+    def __init__(self, useActualFunction):
+        PeopleDataKeys.__init__(self, useActualFunction)
+
+        if self.useActualFunction:
+            PeopleDataKeysWaltham.FUNCTION = PeopleDataKeysWaltham.FUNCTION_ACTUAL
+        else:
+            PeopleDataKeysWaltham.FUNCTION = PeopleDataKeysWaltham.FUNCTION_MODEL
+
 
 
 class PersonRowWrapper:
@@ -218,20 +238,20 @@ class PersonRowWrapper:
         return hash(self.getFullName())
 
 class OrgParser:
-    def __init__(self, workbookName, dataSheetName):
+    def __init__(self, workbookName, dataSheetName, useActualFunction):
         """
 
         :type workbookName: str
         :type dataSheetName: str
         """
-        self.peopleDataKeys = PeopleDataKeys
+        self.peopleDataKeys = PeopleDataKeys(useActualFunction)
         self.orgName = os.path.basename(workbookName.split("Staff")[0].strip())
 
         if "waltham" in workbookName.lower():
-            self.peopleDataKeys = PeopleDataKeysWaltham
+            self.peopleDataKeys = PeopleDataKeysWaltham(useActualFunction)
 
         if "bellevue" in workbookName.lower():
-            self.peopleDataKeys = PeopleDataKeysBellevue
+            self.peopleDataKeys = PeopleDataKeysBellevue(useActualFunction)
 
         self.spreadsheetParser = SpreadsheetParser(workbookName, dataSheetName)
         self.managerList = self.getManagerSet()
@@ -273,8 +293,10 @@ class OrgParser:
 
     def getFunctionSet(self, productName=None):
         functionSet = set()
-        for aPerson in self.getFilteredPeople(PeopleFilter().addProductFilter(productName)):
+        people = self.getFilteredPeople(PeopleFilter().addProductFilter(productName))
+        for aPerson in people:
             functionSet.add(aPerson.getFunction())
+
         return functionSet
 
     def getLocationSet(self, productName=""):

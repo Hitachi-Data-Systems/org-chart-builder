@@ -16,7 +16,7 @@ __author__ = 'David Oreper'
 
 
 class OrgDraw:
-    def __init__(self, workbookPath, sheetName, draftMode=False):
+    def __init__(self, workbookPath, sheetName, draftMode, useActualFunction):
         """
 
         :type workbookPath: str
@@ -26,7 +26,7 @@ class OrgDraw:
         self.presentation.slide_height = DrawChartSlide.MAX_HEIGHT_INCHES
         self.presentation.slide_width = DrawChartSlide.MAX_WIDTH_INCHES
         self.slideLayout = self.presentation.slide_layouts[4]
-        self.orgParser = OrgParser(workbookPath, sheetName)
+        self.orgParser = OrgParser(workbookPath, sheetName, useActualFunction)
         self.draftMode = draftMode
 
     def save(self, filename):
@@ -182,6 +182,8 @@ class OrgDraw:
         functionList = list(self.orgParser.getFunctionSet(productName))
         functionList.sort(cmp=self.sortByFunc)
 
+        teamModelText = None
+
         locations = self.orgParser.getLocationSet(productName)
         for aLocation in locations:
             locationName = aLocation.strip() or self.orgParser.orgName
@@ -199,11 +201,14 @@ class OrgDraw:
                     slideTitle = "{} {}Feature Team".format(productName, teamName)
                 else:
                     slideTitle = "{} Functional Team".format(productName)
-
+                    modelDict = self.orgParser.peopleDataKeys.TEAM_MODEL
+                    if productName in modelDict:
+                        teamModelText = modelDict[productName]
+    
                 if len(locations) > 1 and aLocation:
                     slideTitle = slideTitle + "({})".format(locationName)
 
-                chartDrawer = DrawChartSlide(self.presentation, slideTitle, self.slideLayout)
+                chartDrawer = DrawChartSlide(self.presentation, slideTitle, self.slideLayout, teamModelText)
                 for aFunction in functionList:
                     if aFunction.lower() in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
                         continue
@@ -271,6 +276,10 @@ def main(argv):
     parser.add_argument("path", nargs="+", type=str,
                         help="unique file token for file in directory specified by '-d [default={}]' ".format(
                             defaultDir))
+
+    parser.add_argument("-a", "--useActualFunction", action="store_true",
+                        help="Display the actual functional team for each person, not their model representation")
+
     parser.add_argument("-d", "--directory", type=str, help="directory for the spreadsheet",
                         default=defaultDir)
 
@@ -278,7 +287,6 @@ def main(argv):
 
     parser.add_argument("-o", "--outputFile", type=str, default=None, help="output file")
     parser.add_argument("-f", "--featureTeam", action="store_true", default=False, help="Show products by feature team")
-
 
     parser.add_argument("--draftMode", type=bool, default=False,
                         help="Show {} for people that don't have manager, product, function set. Otherwise, "
@@ -305,7 +313,7 @@ def main(argv):
                                                                                                    fileMatch)))
         workbookPath = fileMatch[0]
 
-    orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode)
+    orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode, options.useActualFunction)
 
     orgDraw.drawAllProducts(options.featureTeam)
     orgDraw.drawCrossFunc()
@@ -321,6 +329,9 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    # for davep:
+    #sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History/Waltham/'
+    #sys.argv += ['-d', sDir, '-o%s/WalthamChartGen.pptx' % sDir, 'WalthamStaff.xlsm']
     main(sys.argv[1:])
 
 
