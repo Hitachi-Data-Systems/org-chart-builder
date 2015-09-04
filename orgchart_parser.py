@@ -14,8 +14,8 @@ NOT_SET = "!!NOT SET!!"
 
 
 class PeopleDataKeys:
-    def __init__(self, useActualFunction):
-        self.useActualFunction = useActualFunction
+    def __init__(self):
+        pass
 
     MANAGER = "Manager"
     NAME = "Name"
@@ -38,11 +38,22 @@ class PeopleDataKeys:
     TEAM_MODEL = {}
 
 class PeopleDataKeysBellevue(PeopleDataKeys):
-    def __init__(self, useActualFunction):
-        PeopleDataKeys.__init__(self, useActualFunction)
+    def __init__(self):
+        PeopleDataKeys.__init__(self)
 
     CROSS_FUNCTIONS = ["technology", "admin", "inf", "infrastructure", "cross functional"]
 
+class PeopleDataKeysSantaClara(PeopleDataKeys):
+    def __init__(self):
+        PeopleDataKeys.__init__(self)
+
+    TEAM_MODEL = {
+    "UCP" : "1 Tracks @ (1 PO, 1 TA,  4 Dev, 1 QA, 1 Char, 2 Auto)",
+    "HID" : "2 Tracks @ (1 PO, 5 Dev, 2 QA, 2 Auto, 2 UX)",
+    "HVS" : "1 Tracks @ (1 PO, 8 Dev, 0 QA, 0 Auto)",
+    "HCmD" : "1 Tracks @ (1 Head Coach, 2 PO, 2 Dev, 2 QA, 1 UX)",
+
+    }
 
 class PeopleDataKeysWaltham(PeopleDataKeys):
     def __init__(self):
@@ -65,14 +76,6 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
         "HCP (Rhino)" : "2 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
         "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 1 Auto)",
         }
-
-    def __init__(self, useActualFunction):
-        PeopleDataKeys.__init__(self, useActualFunction)
-
-        if self.useActualFunction:
-            PeopleDataKeysWaltham.FUNCTION = PeopleDataKeysWaltham.FUNCTION_ACTUAL
-        else:
-            PeopleDataKeysWaltham.FUNCTION = PeopleDataKeysWaltham.FUNCTION_MODEL
 
 
 
@@ -210,18 +213,16 @@ class PersonRowWrapper:
         elif not self.isUnfunded() and other.isUnfunded():
             return True
 
-        if self.isIntern() and not other.isIntern():
-            return False
-        elif not self.isIntern() and other.isIntern():
-            return True
+        ## Uncomment if we want to sort interns to the bottom of each list...currently, we put interns on own slide
+        # if self.isIntern() and not other.isIntern():
+        #     return False
+        # elif not self.isIntern() and other.isIntern():
+        #     return True
 
         if self.isTBH() and not other.isTBH():
             return False
         elif not self.isTBH() and other.isTBH():
             return True
-
-
-
 
         return self.getFullName() < other.getFullName()
 
@@ -238,20 +239,23 @@ class PersonRowWrapper:
         return hash(self.getFullName())
 
 class OrgParser:
-    def __init__(self, workbookName, dataSheetName, useActualFunction):
+    def __init__(self, workbookName, dataSheetName, ):
         """
 
         :type workbookName: str
         :type dataSheetName: str
         """
-        self.peopleDataKeys = PeopleDataKeys(useActualFunction)
+        self.peopleDataKeys = PeopleDataKeys()
         self.orgName = os.path.basename(workbookName.split("Staff")[0].strip())
 
         if "waltham" in workbookName.lower():
-            self.peopleDataKeys = PeopleDataKeysWaltham(useActualFunction)
+            self.peopleDataKeys = PeopleDataKeysWaltham()
 
         if "bellevue" in workbookName.lower():
-            self.peopleDataKeys = PeopleDataKeysBellevue(useActualFunction)
+            self.peopleDataKeys = PeopleDataKeysBellevue()
+
+        if "clara" in workbookName.lower():
+            self.peopleDataKeys = PeopleDataKeysSantaClara()
 
         self.spreadsheetParser = SpreadsheetParser(workbookName, dataSheetName)
         self.managerList = self.getManagerSet()

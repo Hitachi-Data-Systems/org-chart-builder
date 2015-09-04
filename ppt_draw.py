@@ -10,13 +10,13 @@ from orgchart_parser import OrgParser, PeopleFilter
 import sys
 from pptx import Presentation
 import orgchart_parser
-from ppt_slide import DrawChartSlide
+from ppt_slide import DrawChartSlide, DrawChartSlideAdmin
 
 __author__ = 'David Oreper'
 
 
 class OrgDraw:
-    def __init__(self, workbookPath, sheetName, draftMode, useActualFunction):
+    def __init__(self, workbookPath, sheetName, draftMode):
         """
 
         :type workbookPath: str
@@ -26,7 +26,7 @@ class OrgDraw:
         self.presentation.slide_height = DrawChartSlide.MAX_HEIGHT_INCHES
         self.presentation.slide_width = DrawChartSlide.MAX_WIDTH_INCHES
         self.slideLayout = self.presentation.slide_layouts[4]
-        self.orgParser = OrgParser(workbookPath, sheetName, useActualFunction)
+        self.orgParser = OrgParser(workbookPath, sheetName)
         self.draftMode = draftMode
 
     def save(self, filename):
@@ -80,7 +80,7 @@ class OrgDraw:
             # NOTE: All of the direct reports in the location will be drawn
             # Example: If Dave is on floor1 and floor2 in Waltham, then the same direct reports will be drawn both times
             for aFloor, managerList in managersByFloor.iteritems():
-                chartDrawer = DrawChartSlide(self.presentation, "{} Admin {}".format(locationName, aFloor), self.slideLayout)
+                chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {}".format(locationName, aFloor), self.slideLayout)
                 managerList = list(managerList)
                 managerList.sort()
                 for aManager in managerList:
@@ -277,9 +277,6 @@ def main(argv):
                         help="unique file token for file in directory specified by '-d [default={}]' ".format(
                             defaultDir))
 
-    parser.add_argument("-a", "--useActualFunction", action="store_true",
-                        help="Display the actual functional team for each person, not their model representation")
-
     parser.add_argument("-d", "--directory", type=str, help="directory for the spreadsheet",
                         default=defaultDir)
 
@@ -313,7 +310,7 @@ def main(argv):
                                                                                                    fileMatch)))
         workbookPath = fileMatch[0]
 
-    orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode, options.useActualFunction)
+    orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode)
 
     orgDraw.drawAllProducts(options.featureTeam)
     orgDraw.drawCrossFunc()
@@ -325,7 +322,7 @@ def main(argv):
     outputFileName = options.outputFile
     if not outputFileName:
         outputFileName = "{}{}".format(orgDraw.orgParser.orgName, defaultOutputFile)
-    orgDraw.save(outputFileName)
+    orgDraw.save(outputFileName.strip())
 
 
 if __name__ == "__main__":
@@ -335,15 +332,17 @@ if __name__ == "__main__":
     main(sys.argv[1:])
 
 
-
 class GenChartCommandline(TestCase):
 
     def testSantaClara(self):
-        # main(['C:\SantaClara Staff.xlsm'])
+        outputFileName = "{}{}SantaClaraOrgChart.pptx".format(os.getcwd(),os.sep)
+        # main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
+
         #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
 
         main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm'])
         #main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-f"])
+        os.system("start "+outputFileName)
 
 
     def testSantaClaraFeatures(self):

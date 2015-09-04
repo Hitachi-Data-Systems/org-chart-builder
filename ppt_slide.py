@@ -14,6 +14,8 @@ class DrawChartSlide:
     PAGE_BUFFER = Inches(.2)
     RIGHT_EDGE = MAX_WIDTH_INCHES - PAGE_BUFFER
 
+
+
     def __init__(self, aPresentation, slideTitle, slideLayout, teamModelText=None):
         """
 
@@ -31,7 +33,7 @@ class DrawChartSlide:
         self.teamModelText = teamModelText
 
     def addGroup(self, title, groupMembers):
-        peopleGroup = PeopleGroup(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
+        peopleGroup = self._getPeopleGroup(title)
         peopleGroup.setGroupColor(self.colorPicker.getBackgroundColor())
         peopleGroup.setMemberColor(self.colorPicker.getForegroundColor())
         self.colorPicker.nextColor()
@@ -40,6 +42,9 @@ class DrawChartSlide:
 
         self.groupLeft = peopleGroup.getRightEdge() + GroupShapeDimensions.BUFFER_WIDTH
         self.groupList.append(peopleGroup)
+
+    def _getPeopleGroup(self, title):
+        return PeopleGroup(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
 
     def _adjustGroupWidth(self, reductionRatio):
         print("Reducing width by {}% for: {}".format(100 - int(reductionRatio*100), self.slideTitle))
@@ -94,6 +99,10 @@ class DrawChartSlide:
 
         for aGroup in self.groupList:
             aGroup.build(slide)
+
+class DrawChartSlideAdmin(DrawChartSlide):
+    def _getPeopleGroup(self, title):
+        return PeopleGroupAdmin(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
 
 
 class GroupShapeDimensions:
@@ -215,31 +224,43 @@ class PeopleGroup(object):
                 self._nextColumn()
                 count = 1
 
+    def _getTitle(self, aPerson):
+
+        if aPerson.isTBH():
+            if not re.search('\d', aPerson.getRawName()):
+                return aPerson.getReqNumber()
+        else:
+            if aPerson.isConsultant():
+                return aPerson.getTitle() + " (c)"
+
+            if aPerson.isExpat() or aPerson.isIntern():
+                return self._getInternExpatTitle(aPerson)
+            else:
+                return aPerson.getTitle()
+
+    def _getInternExpatTitle(self, aPerson):
+        return aPerson.getProduct()
+
     def addMember(self, aPerson):
         aPersonRect = RectangleBuilder(self.memberLeft, self.memberTop, MemberShapeDimensions.WIDTH,
                                        MemberShapeDimensions.HEIGHT)
 
-        aPersonRect.setFirstName(aPerson.getFirstName())
-        aPersonRect.setLastName(aPerson.getLastName())
+        firstName = aPerson.getFirstName()
+        lastName = aPerson.getLastName()
+
+        if aPerson.isTBH() and ("(" in firstName):
+            lastName = "(" + firstName.split("(")[1]
+            firstName = firstName.split("(")[0]
+
+        aPersonRect.setFirstName(firstName)
+        aPersonRect.setLastName(lastName)
         aPersonRect.setBrightness(0)
         aPersonRect.setRGBFillColor(self.memberColor)
         aPersonRect.setRGBTextColor(RGBColor(255, 255, 255))
         aPersonRect.setRGBFirstNameColor(RGBColor(255, 255, 255))
-
-        if aPerson.getRawName().startswith("TBH") or aPerson.getRawName().startswith("TBD"):
-            if not re.search('\d', aPerson.getRawName()):
-                aPersonRect.setTitle(aPerson.getReqNumber())
-        else:
-            if aPerson.isExpat() or aPerson.isIntern():
-                aPersonRect.setTitle(aPerson.getProduct())
-            else:
-                aPersonRect.setTitle(aPerson.getTitle())
-
-            if aPerson.isConsultant():
-                aPersonRect.setTitle(aPerson.getTitle() + " (c)")
-
-            if aPerson.isManager():
-                aPersonRect.setRGBFirstNameColor(RGBColor(255, 238, 0))
+        aPersonRect.setTitle(self._getTitle(aPerson))
+        if aPerson.isManager():
+            aPersonRect.setRGBFirstNameColor(RGBColor(255, 238, 0))
 
         self.memberShapeList.append(aPersonRect)
         self.memberTop += MemberShapeDimensions.HEIGHT + MemberShapeDimensions.BUFFER_HEIGHT
@@ -256,3 +277,6 @@ class PeopleGroup(object):
             aMember.build(aSlide)
 
 
+class PeopleGroupAdmin(PeopleGroup):
+    def _getInternExpatTitle(self, aPerson):
+        return aPerson.getTitle()
