@@ -28,11 +28,17 @@ class SpreadsheetParser:
         :type colName: str
         :return:
         """
-        colEntry = self.spreadsheetColumns.getColumn(colName)
-        if colEntry is None or aRow[colEntry].value is None:
+
+        aCell = self.getColByName(aRow, colName)
+
+        if aCell.value is None:
             return ""
 
-        return str(aRow[colEntry].value).strip()
+        return str(aCell.value).strip()
+
+    def getColByName(self, aRow, colName):
+        colEntry = self.spreadsheetColumns.getColumn(colName)
+        return aRow[colEntry]
 
     def columnExists(self, colName):
         return self.spreadsheetColumns.columnExists(colName)

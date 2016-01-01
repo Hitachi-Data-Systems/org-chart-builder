@@ -336,17 +336,16 @@ class GenChartCommandline(TestCase):
 
     def testSantaClara(self):
         outputFileName = "{}{}SantaClaraOrgChart.pptx".format(os.getcwd(),os.sep)
-        # main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
-
+        #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
         #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
-
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm'])
-        #main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-f"])
-        os.system("start "+outputFileName)
-
+        # main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
+        main(['C:\SantaClara Staff - SIBU.xlsm'])
+        os.system("start " + outputFileName)
 
     def testSantaClaraFeatures(self):
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-f"])
+        outputFileName = "{}{}SantaClaraOrgChart.feature.pptx".format(os.getcwd(),os.sep)
+        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-f", "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
 
     def testWaltham(self):
         main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham\WalthamStaff.xlsm'])

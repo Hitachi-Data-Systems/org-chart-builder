@@ -48,10 +48,11 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
         PeopleDataKeys.__init__(self)
 
     TEAM_MODEL = {
-    "UCP" : "1 Tracks @ (1 PO, 1 TA,  4 Dev, 1 QA, 1 Char, 2 Auto)",
-    "HID" : "2 Tracks @ (1 PO, 5 Dev, 2 QA, 2 Auto, 2 UX)",
-    "HVS" : "1 Tracks @ (1 PO, 8 Dev, 0 QA, 0 Auto)",
-    "HCmD" : "1 Tracks @ (1 Head Coach, 2 PO, 2 Dev, 2 QA, 1 UX)",
+    "UCP" : "1 Tracks @ (1 PO, 1 TA,  4 Dev, 2 QA, 1 Char, 2 Auto)",
+    "HID" : "2 Tracks @ (1 PO, 5 Dev, 2 QA, 2 Auto, 1 UX)",
+    "HVS" : "1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
+    "Evidence Management" : "1 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Auto)",
+    "HCmD" : "1 Tracks @ (1 Head Coach, 2 PO, 2 Dev, 1 QA, 1 UX)",
 
     }
 
@@ -145,6 +146,9 @@ class PersonRowWrapper:
     def isIntern(self):
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
         return typeStr.lower() == self.peopleDataKeys.INTERN_TYPE.lower()
+
+    def isLead(self):
+        return self.spreadsheetParser.getColByName(self.aRow, self.peopleDataKeys.NAME).style.font.bold
 
     def isTBH(self):
         if (self.getFullName().lower().startswith("tbh")

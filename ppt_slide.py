@@ -259,6 +259,10 @@ class PeopleGroup(object):
         aPersonRect.setRGBTextColor(RGBColor(255, 255, 255))
         aPersonRect.setRGBFirstNameColor(RGBColor(255, 255, 255))
         aPersonRect.setTitle(self._getTitle(aPerson))
+
+        if aPerson.isLead():
+            aPersonRect.setRGBFirstNameColor(RGBColor(127, 127, 127))
+
         if aPerson.isManager():
             aPersonRect.setRGBFirstNameColor(RGBColor(255, 238, 0))
 
