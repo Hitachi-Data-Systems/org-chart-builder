@@ -47,8 +47,9 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
 
+    LEVEL = "Title"
     TEAM_MODEL = {
-    "UCP" : "1 Tracks @ (1 PO, 1 TA,  4 Dev, 2 QA, 1 Char, 2 Auto)",
+    "UCP" : "1 Tracks @ (1 PO, 1 TA,  4 Dev, 1 QA, 2 Char, 2 Auto)",
     "HID" : "2 Tracks @ (1 PO, 5 Dev, 2 QA, 2 Auto, 1 UX)",
     "HVS" : "1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
     "Evidence Management" : "1 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Auto)",
@@ -78,6 +79,12 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
         "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 1 Auto)",
         }
 
+class PeopleDataKeysSIBU(PeopleDataKeys):
+    def __init__(self):
+        PeopleDataKeys.__init__(self)
+    NAME = "HR Name"
+    NICK_NAME = "Name"
+    REQ = "Requisition"
 
 
 class PersonRowWrapper:
@@ -113,7 +120,8 @@ class PersonRowWrapper:
 
     def getFirstName(self, aName=None):
         if not aName:
-            aName = self.getRawNickName()
+            #if Nickname is blank but raw name is populated - use that
+            aName = self.getRawNickName() or self.getRawName()
 
         if "," in aName:
             return " ".join(aName.split(",")[1:]).strip()
@@ -121,7 +129,8 @@ class PersonRowWrapper:
 
     def getLastName(self, aName=None):
         if not aName:
-            aName = self.getRawNickName()
+            #if Nickname is blank but raw name is populated - use that
+            aName = self.getRawNickName() or self.getRawName()
 
         if "," in aName:
             return aName.split(",")[0].strip()
@@ -260,6 +269,9 @@ class OrgParser:
 
         if "clara" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysSantaClara()
+
+        if "sibu" in workbookName.lower():
+            self.peopleDataKeys = PeopleDataKeysSIBU()
 
         self.spreadsheetParser = SpreadsheetParser(workbookName, dataSheetName)
         self.managerList = self.getManagerSet()
