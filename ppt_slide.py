@@ -1,5 +1,7 @@
+from collections import OrderedDict
 import math
 import datetime
+import pprint
 from pptx.dml.color import RGBColor
 from pptx.util import Inches, Pt
 import re
@@ -13,7 +15,8 @@ class DrawChartSlide:
     MAX_HEIGHT_INCHES = Inches(5.63)
     PAGE_BUFFER = Inches(.2)
     RIGHT_EDGE = MAX_WIDTH_INCHES - PAGE_BUFFER
-
+    FOOTER_TOP = MAX_HEIGHT_INCHES - Inches(.45)
+    FOOTER_LEFT = Inches(.7)
 
 
     def __init__(self, aPresentation, slideTitle, slideLayout, teamModelText=None):
@@ -47,7 +50,7 @@ class DrawChartSlide:
         return PeopleGroup(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
 
     def _adjustGroupWidth(self, reductionRatio):
-        print("Reducing width by {}% for: {}".format(100 - int(reductionRatio*100), self.slideTitle))
+        print("Reducing width by {}% for: {}".format(100 - int(reductionRatio * 100), self.slideTitle))
         rightEdge = Inches(.2)
         for aGroup in self.groupList:
             aGroup.adjustWidth(reductionRatio)
@@ -72,7 +75,7 @@ class DrawChartSlide:
 
         # A little ugly but does the trick - add suffix to the number: 2 -> 2nd
         # http://stackoverflow.com/a/20007730
-        suffixFormatter = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
+        suffixFormatter = lambda n: "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
         ordinalDay = suffixFormatter(int(datetime.datetime.now().strftime("%d").lstrip("0")))
 
         month = datetime.datetime.now().strftime("%B")
@@ -81,11 +84,20 @@ class DrawChartSlide:
         effectiveDateRun.font.italic = True
         effectiveDateRun.font.bold = False
 
+    def addFooter(self, aSlide, footerString, leftEdge=0):
+        footerTextBox = aSlide.shapes.add_textbox(leftEdge, DrawChartSlide.FOOTER_TOP, Inches(0), Inches(0))
+        footerTextFrame = footerTextBox.textframe
+        p = footerTextFrame.add_paragraph()
+        p.text = footerString
+        p.font.size = Pt(4)
+
 
     def drawSlide(self):
         if not self.groupList:
             print "WARNING: NO Groups added for product: {}".format(self.slideTitle)
             return
+
+        countDict = OrderedDict()
 
         slide = self.presentation.slides.add_slide(self.slideLayout)
         self.addTitle(slide)
@@ -97,8 +109,21 @@ class DrawChartSlide:
 
         self._center()
 
+        totalMembers = 0
+        totalTBH = 0
         for aGroup in self.groupList:
             aGroup.build(slide)
+            countDict[aGroup.title] = len(aGroup.memberShapeList)
+            totalMembers += len(aGroup.memberShapeList)
+            totalTBH += aGroup.totalTBH
+
+        totalStr = "Total:{}".format(totalMembers)
+        footerString = totalStr
+        if totalTBH:
+            footerString += "  TBH:{}".format(totalTBH)
+
+        self.addFooter(slide, footerString, self.groupList[0].groupLeft)
+
 
 class DrawChartSlideAdmin(DrawChartSlide):
     def _getPeopleGroup(self, title):
@@ -126,6 +151,7 @@ class MemberShapeDimensions:
     WIDTH = GroupShapeDimensions.WIDTH - (BUFFER_WIDTH * 2)
     HARD_WRAP_NUM = (GroupShapeDimensions.HEIGHT - GroupShapeDimensions.BUFFER_HEIGHT) / (HEIGHT + BUFFER_HEIGHT)
 
+
 class PeopleGroup(object):
     def __init__(self, title, left, top, height):
         """
@@ -142,6 +168,7 @@ class PeopleGroup(object):
         self.groupTop = top
         self.groupLeft = left
         self.groupHeight = height
+        self.totalTBH = 0
 
         self.memberLeft = self.groupLeft + MemberShapeDimensions.BUFFER_WIDTH
         self.memberTop = self.groupTop + GroupShapeDimensions.BUFFER_HEIGHT
@@ -232,13 +259,22 @@ class PeopleGroup(object):
         else:
             if aPerson.isConsultant():
                 return aPerson.getTitle() + " (c)"
+            if aPerson.isVendor():
+                return aPerson.getTitle() + " (v)"
 
-            if aPerson.isExpat() or aPerson.isIntern():
-                return self._getInternExpatTitle(aPerson)
+            if aPerson.isExpat():
+                return self._getExpatTitle(aPerson)
+            if aPerson.isIntern():
+                return self._getInternTitle(aPerson)
             else:
                 return aPerson.getTitle()
 
-    def _getInternExpatTitle(self, aPerson):
+    def _getExpatTitle(self, aPerson):
+        if aPerson.isProductManager():
+            return "Expat"
+        return self._getInternTitle(aPerson)
+
+    def _getInternTitle(self, aPerson):
         return aPerson.getProduct()
 
     def addMember(self, aPerson):
@@ -249,7 +285,7 @@ class PeopleGroup(object):
         lastName = aPerson.getLastName()
 
         if aPerson.isTBH() and ("(" in firstName):
-            lastName = "(" + firstName.split("(")[1]
+            lastName = "(" + "(".join(firstName.split("(")[1:])
             firstName = firstName.split("(")[0]
 
         aPersonRect.setFirstName(firstName)
@@ -266,6 +302,9 @@ class PeopleGroup(object):
         if aPerson.isManager():
             aPersonRect.setRGBFirstNameColor(RGBColor(255, 238, 0))
 
+        if aPerson.isTBH():
+            self.totalTBH += 1
+
         self.memberShapeList.append(aPersonRect)
         self.memberTop += MemberShapeDimensions.HEIGHT + MemberShapeDimensions.BUFFER_HEIGHT
 
@@ -279,6 +318,21 @@ class PeopleGroup(object):
         groupRect.build(aSlide)
         for aMember in self.memberShapeList:
             aMember.build(aSlide)
+
+        self.addGroupFooter(aSlide)
+
+
+    def addGroupFooter(self, aSlide):
+        footerTextBox = aSlide.shapes.add_textbox(self.groupLeft - GroupShapeDimensions.BUFFER_WIDTH,
+                                                  GroupShapeDimensions.HEIGHT + GroupShapeDimensions.TOP
+                                                  - GroupShapeDimensions.BUFFER_HEIGHT
+                                                  + MemberShapeDimensions.BUFFER_HEIGHT ,
+                                                  Inches(.5), Inches(0))
+        footerTextFrame = footerTextBox.textframe
+        p = footerTextFrame.add_paragraph()
+        p.text = pprint.pformat(len(self.memberShapeList))
+        p.font.size = Pt(5)
+        p.font.italic = True
 
 
 class PeopleGroupAdmin(PeopleGroup):

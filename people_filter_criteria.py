@@ -74,6 +74,14 @@ class IsTBHCriteria(FilterCriteria):
     def matches(self, aPerson):
         return aPerson.isTBH() == self.isTBH
 
+class IsProductManagerCriteria(FilterCriteria):
+    def __init__(self, isProductManager):
+        FilterCriteria.__init__(self)
+        self.isProductManager = isProductManager
+
+    def matches(self, aPerson):
+        return aPerson.isProductManager() == self.isProductManager
+
 class IsCrossFuncCriteria(FilterCriteria):
     def __init__(self, isCrossFunc):
         FilterCriteria.__init__(self)

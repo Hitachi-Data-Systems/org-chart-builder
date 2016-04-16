@@ -5,6 +5,7 @@ import glob
 import os
 import pprint
 from unittest import TestCase
+import datetime
 
 from orgchart_parser import OrgParser, PeopleFilter
 import sys
@@ -94,8 +95,21 @@ class OrgDraw:
 
 
     def drawExpat(self):
-        expats = self.orgParser.getFilteredPeople(PeopleFilter().addIsExpatFilter())
+        # Get all the expats except the ones who are also PM - we want PM expats to be on the PM slide, not separate
+        expats = self.orgParser.getFilteredPeople(PeopleFilter().addIsExpatFilter().addIsProductManagerFilter(False))
         self._drawMiscGroups("ExPat", expats)
+
+
+    def drawProductManger(self):
+        productManagers = self.orgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter())
+        if not len(productManagers):
+            return
+        chartDrawer = DrawChartSlide(self.presentation, "Product Management", self.slideLayout)
+
+        peopleProducts = list(set([aPerson.getProduct() for aPerson in productManagers]))
+        for aProduct in peopleProducts:
+            self.buildGroup(aProduct, [aPerson for aPerson in productManagers if aPerson.getProduct() == aProduct], chartDrawer)
+        chartDrawer.drawSlide()
 
     def drawIntern(self):
         interns = self.orgParser.getFilteredPeople(PeopleFilter().addIsInternFilter())
@@ -184,7 +198,8 @@ class OrgDraw:
 
         teamModelText = None
 
-        locations = self.orgParser.getLocationSet(productName)
+        #TODO locations = self.orgParser.getLocationSet(productName)
+        locations = [""]
         for aLocation in locations:
             locationName = aLocation.strip() or self.orgParser.orgName
 
@@ -216,13 +231,14 @@ class OrgDraw:
                     peopleFilter = PeopleFilter()
                     peopleFilter.addProductFilter(productName)
                     peopleFilter.addFunctionFilter(aFunction)
-                    peopleFilter.addLocationFilter(aLocation)
+                    #TODO peopleFilter.addLocationFilter(aLocation)
 
                     if drawFeatureTeams:
                         peopleFilter.addFeatureTeamFilter(aFeatureTeam)
                     else:
                         peopleFilter.addIsExpatFilter(False)
                         peopleFilter.addIsInternFilter(False)
+                        peopleFilter.addIsProductManagerFilter(False)
 
                     functionPeople = self.orgParser.getFilteredPeople(peopleFilter)
 
@@ -317,6 +333,7 @@ def main(argv):
     if not options.featureTeam:
         orgDraw.drawExpat()
         orgDraw.drawIntern()
+        orgDraw.drawProductManger()
     orgDraw.drawAdmin()
 
     outputFileName = options.outputFile
@@ -335,12 +352,15 @@ if __name__ == "__main__":
 class GenChartCommandline(TestCase):
 
     def testSantaClara(self):
-        outputFileName = "{}{}SantaClaraOrgChart.pptx".format(os.getcwd(),os.sep)
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SantaClaraOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
         #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
-        # main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
-        main(['C:\SantaClara Staff - SIBU.xlsm'])
-        os.system("start " + outputFileName)
+        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
+        # main(['C:\SantaClara Staff - Remodel.xlsm'])
+
+        startCmd = 'start {}'.format(outputFileName)
+        os.system(startCmd)
 
     def testSantaClaraFeatures(self):
         outputFileName = "{}{}SantaClaraOrgChart.feature.pptx".format(os.getcwd(),os.sep)
@@ -353,3 +373,10 @@ class GenChartCommandline(TestCase):
     def testBellevue(self):
         #main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue Staff.xlsm'])
         main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue Staff.xlsm'])
+
+    def testSIBU(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\SIBU\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)

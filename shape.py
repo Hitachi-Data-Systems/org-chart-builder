@@ -54,8 +54,6 @@ class RectangleBuilder(object):
         self.firstName = None
         self.lastName = None
         self.title = None
-        self.consultant = None
-        self.expat = None
         self.heading = None
         self.firstNameSize = 8
         self.headingSize = 9

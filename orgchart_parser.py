@@ -3,7 +3,8 @@ import os
 import sys
 
 from people_filter_criteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria, \
-    FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria, LocationCriteria, IsManagerCriteria
+    FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria, LocationCriteria, IsManagerCriteria, \
+    IsProductManagerCriteria
 
 from spreadsheet_parser import SpreadsheetParser
 
@@ -29,6 +30,7 @@ class PeopleDataKeys:
     CONSULTANT = "Consultant"
     CONTRACTOR = "Contractor"
     EXPAT_TYPE = "Expat"
+    VENDOR_TYPE = "Vendor"
     INTERN_TYPE = "Intern"
     LOCATION = "Location"
 
@@ -85,6 +87,10 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     NAME = "HR Name"
     NICK_NAME = "Name"
     REQ = "Requisition"
+    TEAM_MODEL = {
+        "HVS" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
+        "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
+        }
 
 
 class PersonRowWrapper:
@@ -152,6 +158,10 @@ class PersonRowWrapper:
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
         return typeStr.lower() == self.peopleDataKeys.EXPAT_TYPE.lower()
 
+    def isVendor(self):
+        typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
+        return typeStr.lower() == self.peopleDataKeys.VENDOR_TYPE.lower()
+
     def isIntern(self):
         typeStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TYPE) or ""
         return typeStr.lower() == self.peopleDataKeys.INTERN_TYPE.lower()
@@ -170,6 +180,9 @@ class PersonRowWrapper:
             or self.getFullName().lower().startswith("unfunded")):
             return True
         return False
+
+    def isProductManager(self):
+        return self.getFunction().lower() in ["pm", "product manager", "product management"]
 
     def isCrossFunc(self):
         return ((self.getFunction().lower() in self.peopleDataKeys.CROSS_FUNCTIONS)
@@ -384,6 +397,10 @@ class PeopleFilter:
 
     def addIsExpatFilter(self, isExpat=True):
         self.filterList.append(IsExpatCriteria(isExpat))
+        return self
+
+    def addIsProductManagerFilter(self, isPM=True):
+        self.filterList.append(IsProductManagerCriteria(isPM))
         return self
 
     def addIsTBHFilter(self, isTBH=True):
