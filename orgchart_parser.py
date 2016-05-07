@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import os
 import sys
+import datetime
+import dateutil.parser
 
 from people_filter_criteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria, \
     FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria, LocationCriteria, IsManagerCriteria, \
@@ -33,11 +35,13 @@ class PeopleDataKeys:
     VENDOR_TYPE = "Vendor"
     INTERN_TYPE = "Intern"
     LOCATION = "Location"
+    START_DATE = "Start Date"
 
     CROSS_FUNCTIONS = ["admin", "inf", "infrastructure"]
     CROSS_FUNCT_TEAM = "Cross"
     FLOORS = {}
     TEAM_MODEL = {}
+    PRODUCT_SORT_ORDER = []
 
 class PeopleDataKeysBellevue(PeopleDataKeys):
     def __init__(self):
@@ -53,11 +57,12 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
     TEAM_MODEL = {
     "UCP" : "1 Tracks @ (1 PO, 1 TA,  4 Dev, 1 QA, 2 Char, 2 Auto)",
     "HID" : "2 Tracks @ (1 PO, 5 Dev, 2 QA, 2 Auto, 1 UX)",
-    "HVS" : "1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
+    "HVS" : "Q1:20; Q2:25; Q3:27; Q4:32 -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
     "Evidence Management" : "1 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Auto)",
     "HCmD" : "1 Tracks @ (1 Head Coach, 2 PO, 2 Dev, 1 QA, 1 UX)",
 
     }
+
 
 class PeopleDataKeysWaltham(PeopleDataKeys):
     def __init__(self):
@@ -68,7 +73,7 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
     FUNCTION_ACTUAL = "Function - Actual"
     FUNCTION_MODEL = "Function - Model"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin"]
-    FLOORS = {"Second Floor": ["Anderson, Vic", "Burnham, John", 
+    FLOORS = {"Second Floor": ["Anderson, Vic", "Burnham, John",
                                "Pfahl, Matt", "Kohli, Nishant", "Lin, Wayzen"],
               "Third Floor Part 1": [ "Isherwood, Ben", "Liang, Candy", "Chestna, Wayne", "Pannese, Donald"],
               "Third Floor Part 2": [ "Hartford, Joe",  "Pinkney, Dave", "Van Thong, Adrien", "Kostadinov, Alex"]
@@ -85,12 +90,20 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     NAME = "HR Name"
-    NICK_NAME = "Name"
+    NICK_NAME = NAME
     REQ = "Requisition"
     TEAM_MODEL = {
-        "HVS" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
-        "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
+            "HVS" : "[Forecast: Q1:20; Q2:25; Q3:28; Q4:32] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
+            "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
+            "Lumada" : "[Forecast: Q1:7; Q2:10; Q3:43; Q4:110]",
+            "City Data Exchange" : "[Forecast: Q1:5; Q2:20; Q3:25; Q4:31]",
+            "Predictive Maintenance" : "[Forecast: Q1:5; Q2:17; Q3:22; Q4:27]",
+            "Optimized Factory" : "[Forecast: Q1:1; Q2:11; Q3:13; Q4:15]",
         }
+
+    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "lumada", "city data exchange", "cde", "optimized factory",
+                          "opf", "predictive maintenance", "pdm"]
+
 
 
 class PersonRowWrapper:
@@ -226,8 +239,27 @@ class PersonRowWrapper:
             return ""
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LOCATION).strip() or ""
 
+    def getStartDate(self):
+        """
+
+
+        :return: DateTime Object. Return empty datetime object if date is not set
+        """
+        if not self.spreadsheetParser.columnExists(self.peopleDataKeys.START_DATE):
+            return ""
+
+        startDateStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.START_DATE).strip()
+
+        if startDateStr:
+            return dateutil.parser.parse(startDateStr)
+        return datetime.datetime.min
+
     def __str__(self):
-        return "Person: {}".format(self.getFullName())
+        personStr = "Person: {}, Product: {}, Location: {}".format(self.getFullName(), self.getProduct(), self.getLocation())
+        if self.isTBH():
+            personStr = "{} Req:{}".format(personStr, self.getReqNumber())
+        personStr = "{} Row: {}".format(personStr, self.aRow[00].row)
+        return personStr
 
     def __repr__(self):
         return self.__str__()
@@ -239,7 +271,7 @@ class PersonRowWrapper:
         elif not self.isUnfunded() and other.isUnfunded():
             return True
 
-        ## Uncomment if we want to sort interns to the bottom of each list...currently, we put interns on own slide
+        # # Uncomment if we want to sort interns to the bottom of each list...currently, we put interns on own slide
         # if self.isIntern() and not other.isIntern():
         #     return False
         # elif not self.isIntern() and other.isIntern():
@@ -256,13 +288,14 @@ class PersonRowWrapper:
         return not self.__lt__(other)
 
     def __eq__(self, other):
-        return self.getFullName() == other.getFullName()
+        #return self.getFullName() == other.getFullName()
+        return self.aRow[00].row == other.aRow[00].aRow
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.getFullName())
+        return hash(self.aRow[00].row)
 
 class OrgParser:
     def __init__(self, workbookName, dataSheetName, ):

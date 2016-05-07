@@ -89,15 +89,13 @@ class DrawChartSlide:
         footerTextFrame = footerTextBox.textframe
         p = footerTextFrame.add_paragraph()
         p.text = footerString
-        p.font.size = Pt(4)
+        p.font.size = Pt(7)
 
 
     def drawSlide(self):
         if not self.groupList:
             print "WARNING: NO Groups added for product: {}".format(self.slideTitle)
             return
-
-        countDict = OrderedDict()
 
         slide = self.presentation.slides.add_slide(self.slideLayout)
         self.addTitle(slide)
@@ -111,17 +109,23 @@ class DrawChartSlide:
 
         totalMembers = 0
         totalTBH = 0
+        totalExpat = 0
         for aGroup in self.groupList:
             aGroup.build(slide)
-            countDict[aGroup.title] = len(aGroup.memberShapeList)
-            totalMembers += len(aGroup.memberShapeList)
+            totalMembers += len(aGroup.memberShapeList)- aGroup.totalExpat - aGroup.totalTBH
             totalTBH += aGroup.totalTBH
+            totalExpat += aGroup.totalExpat
 
-        totalStr = "Total:{}".format(totalMembers)
-        footerString = totalStr
+        footerString = ""
+        if totalMembers:
+            footerString = "|| HC:{}  ".format(totalMembers)
         if totalTBH:
-            footerString += "  TBH:{}".format(totalTBH)
+            footerString += "||  TBH:{}  ".format(totalTBH)
+        if totalExpat:
+            footerString += "||  Expat:{}  ".format(totalExpat)
 
+        if footerString:
+            footerString += "||"
         self.addFooter(slide, footerString, self.groupList[0].groupLeft)
 
 
@@ -129,6 +133,14 @@ class DrawChartSlideAdmin(DrawChartSlide):
     def _getPeopleGroup(self, title):
         return PeopleGroupAdmin(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
 
+
+class DrawChartSlideTBH(DrawChartSlide):
+    def _getPeopleGroup(self, title):
+        return PeopleGroupTBH(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
+
+class DrawChartSlideExpatIntern(DrawChartSlide):
+    def _getPeopleGroup(self, title):
+        return PeopleGroupExpatIntern(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
 
 class GroupShapeDimensions:
     def __init__(self):
@@ -151,7 +163,6 @@ class MemberShapeDimensions:
     WIDTH = GroupShapeDimensions.WIDTH - (BUFFER_WIDTH * 2)
     HARD_WRAP_NUM = (GroupShapeDimensions.HEIGHT - GroupShapeDimensions.BUFFER_HEIGHT) / (HEIGHT + BUFFER_HEIGHT)
 
-
 class PeopleGroup(object):
     def __init__(self, title, left, top, height):
         """
@@ -169,6 +180,7 @@ class PeopleGroup(object):
         self.groupLeft = left
         self.groupHeight = height
         self.totalTBH = 0
+        self.totalExpat = 0
 
         self.memberLeft = self.groupLeft + MemberShapeDimensions.BUFFER_WIDTH
         self.memberTop = self.groupTop + GroupShapeDimensions.BUFFER_HEIGHT
@@ -245,11 +257,37 @@ class PeopleGroup(object):
         # Calculate how many people will be in each column
         wrapCount = math.ceil(len(peopleList) / float(self.groupWidthUnits))
         for aPerson in peopleList:
-            self.addMember(aPerson)
+
+            aPersonRect = self._getPersonRect(aPerson)
+            aPersonRect = self.addRectFormatting(aPerson, aPersonRect)
+            self.addMemberRect(aPersonRect)
+
             count += 1
             if count > wrapCount:
                 self._nextColumn()
                 count = 1
+
+    def _getPersonRect(self, aPerson):
+        """
+
+        :param aPerson:
+        :return: Return a personRect with FirstName,LastName,Title pre-populated
+        """
+        aPersonRect = RectangleBuilder(self.memberLeft, self.memberTop, MemberShapeDimensions.WIDTH,
+                                       MemberShapeDimensions.HEIGHT)
+
+        firstName = aPerson.getFirstName()
+        lastName = aPerson.getLastName()
+        if aPerson.isTBH() and ("(" in firstName):
+            lastName = "(" + "(".join(firstName.split("(")[1:])
+            firstName = firstName.split("(")[0]
+
+        title = self._getTitle(aPerson)
+
+        aPersonRect.setFirstName(firstName)
+        aPersonRect.setLastName(lastName)
+        aPersonRect.setTitle(title)
+        return aPersonRect
 
     def _getTitle(self, aPerson):
 
@@ -261,40 +299,26 @@ class PeopleGroup(object):
                 return aPerson.getTitle() + " (c)"
             if aPerson.isVendor():
                 return aPerson.getTitle() + " (v)"
-
             if aPerson.isExpat():
-                return self._getExpatTitle(aPerson)
+                return aPerson.getTitle() + " (e)"
             if aPerson.isIntern():
-                return self._getInternTitle(aPerson)
+                return aPerson.getTitle() + " (i)"
             else:
                 return aPerson.getTitle()
+    #
+    # def _getExpatTitle(self, aPerson):
+    #     if aPerson.isProductManager():
+    #         return "Expat"
+    #     return self._getInternTitle(aPerson)
+    #
+    # def _getInternTitle(self, aPerson):
+    #     return aPerson.getProduct()
 
-    def _getExpatTitle(self, aPerson):
-        if aPerson.isProductManager():
-            return "Expat"
-        return self._getInternTitle(aPerson)
-
-    def _getInternTitle(self, aPerson):
-        return aPerson.getProduct()
-
-    def addMember(self, aPerson):
-        aPersonRect = RectangleBuilder(self.memberLeft, self.memberTop, MemberShapeDimensions.WIDTH,
-                                       MemberShapeDimensions.HEIGHT)
-
-        firstName = aPerson.getFirstName()
-        lastName = aPerson.getLastName()
-
-        if aPerson.isTBH() and ("(" in firstName):
-            lastName = "(" + "(".join(firstName.split("(")[1:])
-            firstName = firstName.split("(")[0]
-
-        aPersonRect.setFirstName(firstName)
-        aPersonRect.setLastName(lastName)
+    def addRectFormatting(self, aPerson, aPersonRect):
         aPersonRect.setBrightness(0)
         aPersonRect.setRGBFillColor(self.memberColor)
         aPersonRect.setRGBTextColor(RGBColor(255, 255, 255))
         aPersonRect.setRGBFirstNameColor(RGBColor(255, 255, 255))
-        aPersonRect.setTitle(self._getTitle(aPerson))
 
         if aPerson.isLead():
             aPersonRect.setRGBFirstNameColor(RGBColor(127, 127, 127))
@@ -304,7 +328,15 @@ class PeopleGroup(object):
 
         if aPerson.isTBH():
             self.totalTBH += 1
+            if self._isFutureTBH(aPerson):
+                aPersonRect.setBrightness(.4)
 
+        if aPerson.isExpat():
+            self.totalExpat += 1
+
+        return aPersonRect
+
+    def addMemberRect(self, aPersonRect):
         self.memberShapeList.append(aPersonRect)
         self.memberTop += MemberShapeDimensions.HEIGHT + MemberShapeDimensions.BUFFER_HEIGHT
 
@@ -334,7 +366,35 @@ class PeopleGroup(object):
         p.font.size = Pt(5)
         p.font.italic = True
 
+    def _isFutureTBH(self, aPerson):
+        return datetime.datetime.now() < aPerson.getStartDate()
 
 class PeopleGroupAdmin(PeopleGroup):
     def _getInternExpatTitle(self, aPerson):
         return aPerson.getTitle()
+
+class PeopleGroupTBH(PeopleGroup):
+    def _getPersonRect(self, aPerson):
+        aPersonRect = RectangleBuilder(self.memberLeft, self.memberTop, MemberShapeDimensions.WIDTH,
+                                       MemberShapeDimensions.HEIGHT)
+
+        firstName = aPerson.getFunction()
+        title = "{}".format(aPerson.getTitle())
+        if aPerson.isTBH() and ("(" in aPerson.getFirstName()):
+            title = "{} ({}".format(title, "(".join(aPerson.getFirstName().split("(")[1:]))
+
+        aPersonRect.setFirstName(firstName)
+        aPersonRect.firstNameSize = 7
+        aPersonRect.setLastName(title)
+        aPersonRect.setTitle(aPerson.getReqNumber())
+        return aPersonRect
+
+class PeopleGroupExpatIntern(PeopleGroup):
+    def _getPersonRect(self, aPerson):
+        aPersonRect = RectangleBuilder(self.memberLeft, self.memberTop, MemberShapeDimensions.WIDTH,
+                                       MemberShapeDimensions.HEIGHT)
+
+        aPersonRect.setFirstName(aPerson.getFirstName())
+        aPersonRect.setLastName(aPerson.getLastName())
+        aPersonRect.setTitle(aPerson.getProduct())
+        return aPersonRect

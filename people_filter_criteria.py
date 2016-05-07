@@ -41,11 +41,19 @@ class ManagerCriteria(FilterCriteria):
     def matches(self, aPerson):
         personManager = aPerson.getManagerFullName()
 
+        # Do explicit checks to make sure the manager field is populated before evaluating to avoid case
+        # where person has no manager set and falsly matches because manager we're checking has one of these
+        # fields empty
         if self.manager:
-            return ( personManager == self.manager.getFullName()
-                        or personManager == self.manager.getRawName()
-                        or personManager == self.manager.getRawNickName()
-                        or personManager == self.manager.getNormalizedRawName())
+            if self.manager.getFullName() and (personManager == self.manager.getFullName()):
+                return True
+            if self.manager.getRawName() and (personManager == self.manager.getRawName()):
+                return True
+            if self.manager.getRawNickName() and (personManager == self.manager.getRawNickName()):
+                return True
+            if self.manager.getNormalizedRawName() and (personManager == self.manager.getNormalizedRawName()):
+                return True
+            return False
 
         return not personManager
 
