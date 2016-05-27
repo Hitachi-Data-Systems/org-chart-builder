@@ -133,6 +133,9 @@ class OrgDraw:
             crossFuncPeople.extend(self.orgParser.getFilteredPeople(
                 PeopleFilter().addFunctionFilter(aFunc)))
 
+        crossFuncTeam = self.orgParser.getFilteredPeople(PeopleFilter().addProductFilter(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM))
+        crossFuncPeople.extend(crossFuncTeam)
+
         if not len(crossFuncPeople):
             return
 
@@ -152,8 +155,6 @@ class OrgDraw:
         chartDrawer.drawSlide()
 
     def drawAllProducts(self, drawFeatureTeams, drawLocations):
-        # productList = set(self.orgParser.getProductSet())
-
         #Get all the products except the ones where a PM is the only member
         people = self.orgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter(False))
 
@@ -259,7 +260,7 @@ class OrgDraw:
             chartDrawer.drawSlide()
 
     def _sortByFunc(self, a, b):
-        funcOrder = ["lead", "leadership", "head coach", "product management", "po", "product owner", "product owner/qa", "technology", "ta", "technology architect", "tech", "sw architecture", "dev",
+        funcOrder = ["lead", "leadership", "head coach", "product management", "pm", "po", "product owner", "product owner/qa", "technology", "ta", "technology architect", "tech", "sw architecture", "dev",
                      "development", "qa", "quality assurance", "stress",
                      "characterization", "auto", "aut", "automation", "sustaining", "solutions and sustaining",
                      "ui", "ux", "ui/ux", "inf", "infrastructure", "devops", "cross functional", "cross", "doc",
@@ -416,7 +417,7 @@ class GenChartCommandline(TestCase):
         os.system("start " + outputFileName)
 
     def testWaltham(self):
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham\WalthamStaff_EnsembleEng.xlsm', "-t"])
+        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham\WalthamStaff.xlsm', "-t"])
 
     def testBellevue(self):
         #main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue Staff.xlsm'])
@@ -425,6 +426,6 @@ class GenChartCommandline(TestCase):
     def testSIBU(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBU\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
+        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)

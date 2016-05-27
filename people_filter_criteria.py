@@ -42,7 +42,7 @@ class ManagerCriteria(FilterCriteria):
         personManager = aPerson.getManagerFullName()
 
         # Do explicit checks to make sure the manager field is populated before evaluating to avoid case
-        # where person has no manager set and falsly matches because manager we're checking has one of these
+        # where person has no manager set and falsely matches because manager we're checking has one of these
         # fields empty
         if self.manager:
             if self.manager.getFullName() and (personManager == self.manager.getFullName()):

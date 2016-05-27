@@ -292,8 +292,9 @@ class PeopleGroup(object):
     def _getTitle(self, aPerson):
 
         if aPerson.isTBH():
-            if not re.search('\d', aPerson.getRawName()):
-                return aPerson.getReqNumber()
+            if re.search('\d\d\d\d\d', aPerson.getRawName()):
+                return aPerson.getRawName()
+            return "{}\n{}".format(aPerson.getTitle(), aPerson.getReqNumber())
         else:
             if aPerson.isConsultant():
                 return aPerson.getTitle() + " (c)"
@@ -305,14 +306,6 @@ class PeopleGroup(object):
                 return aPerson.getTitle() + " (i)"
             else:
                 return aPerson.getTitle()
-    #
-    # def _getExpatTitle(self, aPerson):
-    #     if aPerson.isProductManager():
-    #         return "Expat"
-    #     return self._getInternTitle(aPerson)
-    #
-    # def _getInternTitle(self, aPerson):
-    #     return aPerson.getProduct()
 
     def addRectFormatting(self, aPerson, aPersonRect):
         aPersonRect.setBrightness(0)
@@ -385,8 +378,13 @@ class PeopleGroupTBH(PeopleGroup):
 
         aPersonRect.setFirstName(firstName)
         aPersonRect.firstNameSize = 7
-        aPersonRect.setLastName(title)
-        aPersonRect.setTitle(aPerson.getReqNumber())
+
+        # If title is too long, only show the req number
+        if len(aPerson.getTitle()) + len(aPerson.getFunction()) > 37:
+            aPersonRect.setLastName(aPerson.getReqNumber())
+        else:
+            aPersonRect.setLastName(title)
+            aPersonRect.setTitle(aPerson.getReqNumber())
         return aPersonRect
 
 class PeopleGroupExpatIntern(PeopleGroup):
