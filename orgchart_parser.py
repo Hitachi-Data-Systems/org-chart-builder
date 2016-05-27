@@ -67,23 +67,43 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
 class PeopleDataKeysWaltham(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-    FUNCTION = "Function - Actual"
+    FUNCTION = "Function"
     NAME = "HR Name"
     NICK_NAME = "Name"
-    FUNCTION_ACTUAL = "Function - Actual"
-    FUNCTION_MODEL = "Function - Model"
-    CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin"]
-    FLOORS = {"Second Floor": ["Anderson, Vic", "Burnham, John",
-                               "Pfahl, Matt", "Kohli, Nishant", "Lin, Wayzen"],
-              "Third Floor Part 1": [ "Isherwood, Ben", "Liang, Candy", "Chestna, Wayne", "Pannese, Donald"],
-              "Third Floor Part 2": [ "Hartford, Joe",  "Pinkney, Dave", "Van Thong, Adrien", "Kostadinov, Alex"]
-          }
+    CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
+    FLOORS = {
+        "Second Floor": [
+            "Anderson, Vic", 
+            "Kostadinov, Alex",
+            "Pfahl, Matt",
+            "Van Thong, Adrien",
+        ],
+
+        "Third Floor Part 1": [
+            "Bronner, Mark",
+            "Burnham, John",
+            "Chestna, Wayne",
+            "Lin, Wayzen",
+        ],
+
+        "Third Floor Part 2": [
+            "Hartford, Joe",
+            "Pannese, Donald",
+            "Pinkney, Dave",
+        ],
+
+        "Ensemble Team": [
+            "Isherwood, Ben",
+            "Liang, Candy",
+        ]
+    }
 
     TEAM_MODEL = {
-        "Ensemble" : "2 Tracks @ (1 PO, 3 Dev, 1 QA, 1 Char, 1 Auto)",
-        "HCP" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
-        "HCP (Rhino)" : "2 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
-        "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 1 Auto)",
+        "Aspen" : "1 Track @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "Ensemble" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
+        "HCP" : "4 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "HCP (Rhino)" : "1 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
         }
 
 class PeopleDataKeysSIBU(PeopleDataKeys):
@@ -104,7 +124,16 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     PRODUCT_SORT_ORDER = ["hvs", "hvs em", "lumada", "city data exchange", "cde", "optimized factory",
                           "opf", "predictive maintenance", "pdm"]
 
+class PeopleDataKeysHPP(PeopleDataKeys):
+    def __init__(self):
+        PeopleDataKeys.__init__(self)
+    FUNCTION = "Function"
+    NAME = "HR Name"
+    NICK_NAME = "Name"
+    #CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
 
+    def __init__(self, useActualFunction):
+        PeopleDataKeys.__init__(self, useActualFunction)
 
 class PersonRowWrapper:
     def __init__(self, spreadsheetParser, peopleDataKeys, aRow):
@@ -309,6 +338,9 @@ class OrgParser:
 
         if "waltham" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysWaltham()
+
+        if "hpp" in workbookName.lower():
+            self.peopleDataKeys = PeopleDataKeysHPP(useActualFunction)
 
         if "bellevue" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysBellevue()

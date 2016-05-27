@@ -154,7 +154,7 @@ class OrgDraw:
             self.buildGroup(aFunction, funcPeople, chartDrawer)
         chartDrawer.drawSlide()
 
-    def drawAllProducts(self, drawFeatureTeams, drawLocations):
+    def drawAllProducts(self, drawFeatureTeams, drawLocations, drawExpatsInTeam):
         #Get all the products except the ones where a PM is the only member
         people = self.orgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter(False))
 
@@ -165,9 +165,9 @@ class OrgDraw:
         productList.sort(cmp=self._sortByProduct)
 
         for aProductName in productList:
-            self.drawProduct(aProductName, drawFeatureTeams, drawLocations)
+            self.drawProduct(aProductName, drawFeatureTeams, drawLocations, drawExpatsInTeam)
 
-    def drawProduct(self, productName, drawFeatureTeams=False, drawLocations=False):
+    def drawProduct(self, productName, drawFeatureTeams=False, drawLocations=False, drawExpatsInTeam=True):
         """
 
         :type productName: str
@@ -228,7 +228,8 @@ class OrgDraw:
                     if drawFeatureTeams:
                         peopleFilter.addFeatureTeamFilter(aFeatureTeam)
                     else:
-                        # peopleFilter.addIsExpatFilter(False)
+                        if not drawExpatsInTeam:
+                            peopleFilter.addIsExpatFilter(False)
                         peopleFilter.addIsInternFilter(False)
                         # peopleFilter.addIsProductManagerFilter(False)
 
@@ -345,7 +346,8 @@ def main(argv):
     parser.add_argument("-o", "--outputFile", type=str, default=None, help="output file")
     parser.add_argument("-f", "--featureTeam", action="store_true", default=False, help="Show products by feature team")
     parser.add_argument("-l", "--location", action="store_true", default=False, help="Show products by location")
-    parser.add_argument("-t", "--tbh", action="store_true", default=False, help="Show products by location")
+    parser.add_argument("-t", "--tbh", action="store_true", default=False, help="Add a TBH slide")
+    parser.add_argument("-e", "--expatsInTeam", action="store_true", default=False, help="Include expats in Product team slide")
     parser.add_argument("--draftMode", type=bool, default=False,
                         help="Show {} for people that don't have manager, product, function set. Otherwise, "
                              "people with missing fields are not represented on the chart".format(
@@ -374,16 +376,18 @@ def main(argv):
 
     orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode)
 
-    orgDraw.drawAllProducts(options.featureTeam, options.location)
+    orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
     orgDraw.drawCrossFunc()
     if not options.featureTeam:
         orgDraw.drawExpat()
         orgDraw.drawIntern()
         orgDraw.drawProductManger()
-    orgDraw.drawAdmin()
 
     if options.tbh:
         orgDraw.drawTBH()
+
+    orgDraw.drawAdmin()
+
 
     outputFileName = options.outputFile
     if not outputFileName:
@@ -393,8 +397,11 @@ def main(argv):
 
 if __name__ == "__main__":
     # for davep:
-    #sDir = '/Users/dpinkney/Documents/HCP Anywhere/SharedWithMe/Org Charts and Hiring History/Waltham/'
-    #sys.argv += ['-d', sDir, '-o%s/WalthamChartGen.pptx' % sDir, 'WalthamStaff.xlsm']
+    sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/'
+    sys.argv += ['-d', sDir, '-o%s/WalthamChartGen.pptx' % sDir, 'WalthamStaff.xlsm']
+    #sys.argv += ['-d', sDir, '-o%s/HPP_Charts.pptx' % sDir, 'HPP_Staff.xlsm']
+    #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/tmp/'
+    #sys.argv += ['-d', sDir, '-o%s/WalthamChartGen-moves.pptx' % sDir, 'WalthamStaff-moves.xlsm']
     main(sys.argv[1:])
 
 
