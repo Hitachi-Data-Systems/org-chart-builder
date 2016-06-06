@@ -72,27 +72,28 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
     NICK_NAME = "Name"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
     FLOORS = {
-        "Second Floor": [
+        "- Mobility": [
             "Anderson, Vic", 
             "Kostadinov, Alex",
+            "Lin, Wayzen",
             "Pfahl, Matt",
             "Van Thong, Adrien",
         ],
 
-        "Third Floor Part 1": [
+        "- Content Part 1": [
             "Bronner, Mark",
             "Burnham, John",
             "Chestna, Wayne",
             "Lin, Wayzen",
         ],
 
-        "Third Floor Part 2": [
+        "- Content Part 2": [
             "Hartford, Joe",
             "Pannese, Donald",
             "Pinkney, Dave",
         ],
 
-        "Ensemble Team": [
+        "- Ensemble": [
             "Isherwood, Ben",
             "Liang, Candy",
         ]
@@ -280,7 +281,11 @@ class PersonRowWrapper:
         startDateStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.START_DATE).strip()
 
         if startDateStr:
-            return dateutil.parser.parse(startDateStr)
+            try:
+                return dateutil.parser.parse(startDateStr)
+            except ValueError:
+                print "Warning: can not parse start date for {}: '{}'".format(self.getFullName(), startDateStr)
+
         return datetime.datetime.min
 
     def __str__(self):

@@ -321,8 +321,9 @@ class PeopleGroup(object):
 
         if aPerson.isTBH():
             self.totalTBH += 1
-            if self.isFutureTBH(aPerson):
-                aPersonRect.setBrightness(.4)
+
+        if self.isFutureTBH(aPerson):
+            aPersonRect.setBrightness(.4)
 
         if aPerson.isExpat():
             self.totalExpat += 1
@@ -360,7 +361,10 @@ class PeopleGroup(object):
         p.font.italic = True
 
     def isFutureTBH(self, aPerson):
-        return datetime.datetime.now() < aPerson.getStartDate()
+        if not aPerson.getStartDate():
+            return False
+        else:
+            return datetime.datetime.now() < aPerson.getStartDate()
 
 class PeopleGroupAdmin(PeopleGroup):
     def _getInternExpatTitle(self, aPerson):
@@ -376,12 +380,8 @@ class PeopleGroupTBH(PeopleGroup):
         if aPerson.isTBH() and ("(" in aPerson.getFirstName()):
             title = "{} ({}".format(title, "(".join(aPerson.getFirstName().split("(")[1:]))
 
-        if self.isFutureTBH(aPerson):
-            # Use the person's name instead of the req number if this is a future hire
-            reqNumber = aPerson.getFullName()
-        else:
-            reqNumber = aPerson.getReqNumber()
-        
+        reqNumber = aPerson.getReqNumber()
+
         aPersonRect.setFirstName(firstName)
         aPersonRect.firstNameSize = 7
 
