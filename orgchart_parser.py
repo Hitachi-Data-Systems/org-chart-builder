@@ -42,6 +42,7 @@ class PeopleDataKeys:
     FLOORS = {}
     TEAM_MODEL = {}
     PRODUCT_SORT_ORDER = []
+    FLOOR_SORT_ORDER = []
 
 class PeopleDataKeysBellevue(PeopleDataKeys):
     def __init__(self):
@@ -96,7 +97,12 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
         "- Ensemble": [
             "Isherwood, Ben",
             "Liang, Candy",
-        ]
+        ],
+        "- HPP": [
+            "Shea, Kevin",
+            "Wesley, Joe",
+            "Moore, Jim",
+        ],
     }
 
     TEAM_MODEL = {
@@ -106,6 +112,11 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
         "HCP (Rhino)" : "1 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
         "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
         }
+
+    # names should be lower case here
+    PRODUCT_SORT_ORDER = ["aspen", "ensemble", "hcp", "hcp (rhino)", "hcp-aw", "hpp" ]
+    FLOOR_SORT_ORDER = ["- ensemble", "- content part 1", "- content part 2", "- mobility", "- hpp" ]
+
 
 class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):

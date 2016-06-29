@@ -80,7 +80,12 @@ class OrgDraw:
             # Example: There are a lot of managers in Waltham so we break them up across floors
             # NOTE: All of the direct reports in the location will be drawn
             # Example: If Dave is on floor1 and floor2 in Waltham, then the same direct reports will be drawn both times
-            for aFloor, managerList in managersByFloor.iteritems():
+
+            sortedFloors = list(managersByFloor.keys())
+            sortedFloors.sort(cmp=self._sortByFloor)
+
+            for aFloor in sortedFloors:
+                managerList = managersByFloor[aFloor]
                 chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {}".format(locationName, aFloor), self.slideLayout)
                 managerList = list(managerList)
                 managerList.sort()
@@ -274,6 +279,20 @@ class OrgDraw:
             return -1
 
         if b.lower() in funcOrder:
+            return 1
+
+        return 0
+
+    def _sortByFloor(self, a, b):
+        floorOrder = self.orgParser.peopleDataKeys.FLOOR_SORT_ORDER
+
+        if a.lower() in floorOrder:
+            if b.lower() in floorOrder:
+                if floorOrder.index(a.lower()) > floorOrder.index(b.lower()):
+                    return 1
+            return -1
+
+        if b.lower() in floorOrder:
             return 1
 
         return 0
