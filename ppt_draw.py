@@ -417,8 +417,8 @@ def main(argv):
 
 if __name__ == "__main__":
     # for davep:
-    sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/'
-    sys.argv += ['-t', '-d', sDir, '-o%s/WalthamChartGen.pptx' % sDir, 'WalthamStaff.xlsm']
+    #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/'
+    #sys.argv += ['-t', '-d', sDir, '-o%s/WalthamChartGen.pptx' % sDir, 'WalthamStaff.xlsm']
     #sys.argv += ['-d', sDir, '-o%s/HPP_Charts.pptx' % sDir, 'HPP_Staff.xlsm']
     #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/tmp/'
     #sys.argv += ['-d', sDir, '-o%s/WalthamChartGen-moves.pptx' % sDir, 'WalthamStaff-moves.xlsm']
