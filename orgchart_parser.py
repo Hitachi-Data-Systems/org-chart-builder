@@ -42,6 +42,7 @@ class PeopleDataKeys:
     FLOORS = {}
     TEAM_MODEL = {}
     PRODUCT_SORT_ORDER = []
+    FLOOR_SORT_ORDER = []
 
 class PeopleDataKeysBellevue(PeopleDataKeys):
     def __init__(self):
@@ -67,24 +68,55 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
 class PeopleDataKeysWaltham(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-    FUNCTION = "Function - Actual"
+    FUNCTION = "Function"
     NAME = "HR Name"
     NICK_NAME = "Name"
-    FUNCTION_ACTUAL = "Function - Actual"
-    FUNCTION_MODEL = "Function - Model"
-    CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin"]
-    FLOORS = {"Second Floor": ["Anderson, Vic", "Burnham, John",
-                               "Pfahl, Matt", "Kohli, Nishant", "Lin, Wayzen"],
-              "Third Floor Part 1": [ "Isherwood, Ben", "Liang, Candy", "Chestna, Wayne", "Pannese, Donald"],
-              "Third Floor Part 2": [ "Hartford, Joe",  "Pinkney, Dave", "Van Thong, Adrien", "Kostadinov, Alex"]
-          }
+    CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
+    FLOORS = {
+        "- Mobility": [
+            "Anderson, Vic", 
+            "Kostadinov, Alex",
+            "Lin, Wayzen",
+            "Pfahl, Matt",
+            "Van Thong, Adrien",
+        ],
+
+        "- Content Part 1": [
+            "Bronner, Mark",
+            "Burnham, John",
+            "Chestna, Wayne",
+            "Lin, Wayzen",
+        ],
+
+        "- Content Part 2": [
+            "Hartford, Joe",
+            "Pannese, Donald",
+            "Pinkney, Dave",
+        ],
+
+        "- Ensemble": [
+            "Isherwood, Ben",
+            "Liang, Candy",
+        ],
+        "- HPP": [
+            "Shea, Kevin",
+            "Wesley, Joe",
+            "Moore, Jim",
+        ],
+    }
 
     TEAM_MODEL = {
-        "Ensemble" : "2 Tracks @ (1 PO, 3 Dev, 1 QA, 1 Char, 1 Auto)",
-        "HCP" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
-        "HCP (Rhino)" : "2 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
-        "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 1 Auto)",
+        "Aspen" : "1 Track @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "Ensemble" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
+        "HCP" : "4 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "HCP (Rhino)" : "1 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
         }
+
+    # names should be lower case here
+    PRODUCT_SORT_ORDER = ["aspen", "ensemble", "hcp", "hcp (rhino)", "hcp-aw", "hpp" ]
+    FLOOR_SORT_ORDER = ["- ensemble", "- content part 1", "- content part 2", "- mobility", "- hpp" ]
+
 
 class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):
@@ -105,7 +137,16 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     PRODUCT_SORT_ORDER = ["hvs", "hvs em", "lumada - system", "city data exchange", "cde", "optimized factory",
                           "opf", "predictive maintenance", "pdm"]
 
+class PeopleDataKeysHPP(PeopleDataKeys):
+    def __init__(self):
+        PeopleDataKeys.__init__(self)
+    FUNCTION = "Function"
+    NAME = "HR Name"
+    NICK_NAME = "Name"
+    #CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
 
+    def __init__(self, useActualFunction):
+        PeopleDataKeys.__init__(self, useActualFunction)
 
 class PersonRowWrapper:
     def __init__(self, spreadsheetParser, peopleDataKeys, aRow):
@@ -252,7 +293,11 @@ class PersonRowWrapper:
         startDateStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.START_DATE).strip()
 
         if startDateStr:
-            return dateutil.parser.parse(startDateStr)
+            try:
+                return dateutil.parser.parse(startDateStr)
+            except ValueError:
+                print "Warning: can not parse start date for {}: '{}'".format(self.getFullName(), startDateStr)
+
         return datetime.datetime.min
 
     def __str__(self):
@@ -311,6 +356,9 @@ class OrgParser:
 
         if "waltham" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysWaltham()
+
+        if "hpp" in workbookName.lower():
+            self.peopleDataKeys = PeopleDataKeysHPP(useActualFunction)
 
         if "bellevue" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysBellevue()
