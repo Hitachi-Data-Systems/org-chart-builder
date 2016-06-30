@@ -34,6 +34,10 @@ class DrawChartSlide:
         self.groupLeft = Inches(.2)
         self.groupTop = GroupShapeDimensions.TOP
         self.teamModelText = teamModelText
+        self.location = ""
+
+    def setLocation(self, location):
+        self.location = location
 
     def addGroup(self, title, groupMembers):
         peopleGroup = self._getPeopleGroup(title)
@@ -80,6 +84,10 @@ class DrawChartSlide:
 
         month = datetime.datetime.now().strftime("%B")
         effectiveDateRun.text = "\rEffective {} {} {}".format(month, ordinalDay, modelText)
+
+        if self.location:
+            effectiveDateRun.text = "\r{} - {}".format(self.location, effectiveDateRun.text)
+
         effectiveDateRun.font.size = Pt(11)
         effectiveDateRun.font.italic = True
         effectiveDateRun.font.bold = False

@@ -93,15 +93,16 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     NICK_NAME = NAME
     REQ = "Requisition"
     TEAM_MODEL = {
-            "HVS" : "[Forecast: Q1:20; Q2:25; Q3:28; Q4:32] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
+            "HVS" : "[Forecast: Q1:20; Q2:26; Q3:29; Q4:32] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
             "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
-            "Lumada" : "[Forecast: Q1:7; Q2:10; Q3:43; Q4:110]",
-            "City Data Exchange" : "[Forecast: Q1:5; Q2:20; Q3:25; Q4:31]",
+            "Lumada - System" : "[Forecast: Q1:7; Q2:6; Q3:43; Q4:110]",
+            "Lumada - Studio" : "[Forecast: Q1:7; Q2:10; Q3:43; Q4:110]",
+            "City Data Exchange" : "[Forecast: Q1:6; Q2:19; Q3:6; Q4:6]",
             "Predictive Maintenance" : "[Forecast: Q1:5; Q2:17; Q3:22; Q4:27]",
-            "Optimized Factory" : "[Forecast: Q1:1; Q2:11; Q3:13; Q4:15]",
+            "Optimized Factory" : "[Forecast: Q1:1; Q2:6; Q3:13; Q4:15]",
         }
 
-    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "lumada", "city data exchange", "cde", "optimized factory",
+    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "lumada - system", "city data exchange", "cde", "optimized factory",
                           "opf", "predictive maintenance", "pdm"]
 
 
@@ -304,6 +305,7 @@ class OrgParser:
         :type workbookName: str
         :type dataSheetName: str
         """
+
         self.peopleDataKeys = PeopleDataKeys()
         self.orgName = os.path.basename(workbookName.split("Staff")[0].strip())
 

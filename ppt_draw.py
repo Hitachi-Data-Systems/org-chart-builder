@@ -141,7 +141,8 @@ class OrgDraw:
 
         chartDrawer = DrawChartSlide(self.presentation, "Cross Functional", self.slideLayout)
 
-        functions = set([aPerson.getFunction() for aPerson in crossFuncPeople])
+        functions = list(set([aPerson.getFunction() for aPerson in crossFuncPeople]))
+        functions.sort(cmp=self._sortByFunc)
 
         for aFunction in functions:
             peopleFilter = PeopleFilter()
@@ -206,15 +207,15 @@ class OrgDraw:
                             teamName = ""
                     slideTitle = "{} {}Feature Team".format(productName, teamName)
                 else:
-                    slideTitle = "{} Functional Team".format(productName)
+                    slideTitle = "{}".format(productName)
                     modelDict = self.orgParser.peopleDataKeys.TEAM_MODEL
                     if productName in modelDict:
                         teamModelText = modelDict[productName]
-    
-                if len(locations) > 1 and aLocation:
-                    slideTitle = slideTitle + "({})".format(locationName)
 
                 chartDrawer = DrawChartSlide(self.presentation, slideTitle, self.slideLayout, teamModelText)
+                if len(locations) > 1 and aLocation:
+                   chartDrawer.setLocation(locationName)
+
                 for aFunction in functionList:
                     if aFunction.lower() in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
                         continue
@@ -429,3 +430,18 @@ class GenChartCommandline(TestCase):
         main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
+
+    def testSIBU10M(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart10M.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff10M.xlsm', "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
+    def testSIBU40M(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart40M.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff40M.xlsm', "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
