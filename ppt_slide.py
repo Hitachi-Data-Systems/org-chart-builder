@@ -146,9 +146,16 @@ class DrawChartSlideTBH(DrawChartSlide):
     def _getPeopleGroup(self, title):
         return PeopleGroupTBH(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
 
+
 class DrawChartSlideExpatIntern(DrawChartSlide):
     def _getPeopleGroup(self, title):
         return PeopleGroupExpatIntern(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
+
+
+class DrawChartSlidePM(DrawChartSlide):
+    def _getPeopleGroup(self, title):
+        return PeopleGroupPM(title, self.groupLeft, GroupShapeDimensions.TOP, GroupShapeDimensions.HEIGHT)
+
 
 class GroupShapeDimensions:
     def __init__(self):
@@ -408,5 +415,18 @@ class PeopleGroupExpatIntern(PeopleGroup):
 
         aPersonRect.setFirstName(aPerson.getFirstName())
         aPersonRect.setLastName(aPerson.getLastName())
+        aPersonRect.setTitle(aPerson.getProduct())
+        return aPersonRect
+
+class PeopleGroupPM(PeopleGroup):
+    def _getPersonRect(self, aPerson):
+        aPersonRect = RectangleBuilder(self.memberLeft, self.memberTop, MemberShapeDimensions.WIDTH,
+                                       MemberShapeDimensions.HEIGHT)
+
+        aPersonRect.setFirstName(aPerson.getFirstName())
+        aPersonRect.setLastName(aPerson.getLastName())
+        if aPerson.isTBH():
+            aPersonRect.setLastName(aPerson.getReqNumber())
+
         aPersonRect.setTitle(aPerson.getProduct())
         return aPersonRect

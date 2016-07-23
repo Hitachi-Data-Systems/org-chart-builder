@@ -11,7 +11,7 @@ from orgchart_parser import OrgParser, PeopleFilter
 import sys
 from pptx import Presentation
 import orgchart_parser
-from ppt_slide import DrawChartSlide, DrawChartSlideAdmin, DrawChartSlideTBH, DrawChartSlideExpatIntern
+from ppt_slide import DrawChartSlide, DrawChartSlideAdmin, DrawChartSlideTBH, DrawChartSlideExpatIntern, DrawChartSlidePM
 
 __author__ = 'David Oreper'
 
@@ -110,11 +110,19 @@ class OrgDraw:
         productManagers = self.orgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter())
         if not len(productManagers):
             return
-        chartDrawer = DrawChartSlide(self.presentation, "Product Management", self.slideLayout)
+        chartDrawer = DrawChartSlidePM(self.presentation, "Product Management", self.slideLayout)
 
-        peopleProducts = list(set([aPerson.getProduct() for aPerson in productManagers]))
-        for aProduct in peopleProducts:
-            self.buildGroup(aProduct, [aPerson for aPerson in productManagers if aPerson.getProduct() == aProduct], chartDrawer)
+        productBuckets = list(set([aPerson.getFeatureTeam() for aPerson in productManagers]))
+
+        for aBucket in productBuckets:
+            peopleList = [aPerson for aPerson in productManagers if aPerson.getFeatureTeam() == aBucket]
+            peopleList = sorted(peopleList, key=lambda x: x.getProduct(), cmp=self._sortByProduct)
+
+            self.buildGroup(aBucket, peopleList, chartDrawer)
+
+        # peopleProducts = list(set([aPerson.getProduct() for aPerson in productManagers]))
+        # for aProduct in peopleProducts:
+        #     self.buildGroup(aProduct, [aPerson for aPerson in productManagers if aPerson.getProduct() == aProduct], chartDrawer)
         chartDrawer.drawSlide()
 
     def drawIntern(self):
@@ -179,7 +187,6 @@ class OrgDraw:
         :type productName: str
         :type chartDrawer: ppt_draw.DrawChartSlide
         """
-        teamName = ""
         if not productName:
             if not self.draftMode:
                 return
@@ -268,7 +275,7 @@ class OrgDraw:
 
     def _sortByFunc(self, a, b):
         funcOrder = ["lead", "leadership", "head coach", "product management", "pm", "po", "product owner", "product owner/qa", "technology", "ta", "technology architect", "tech", "sw architecture", "dev",
-                     "development", "qa", "quality assurance", "stress",
+                     "development", "development (connectors)" "qa", "quality assurance", "stress",
                      "characterization", "auto", "aut", "automation", "sustaining", "solutions and sustaining",
                      "ui", "ux", "ui/ux", "inf", "infrastructure", "devops", "cross functional", "cross", "doc",
                      "documentation"]
