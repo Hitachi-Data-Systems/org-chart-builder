@@ -78,6 +78,7 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
             "Kostadinov, Alex",
             "Lin, Wayzen",
             "Pfahl, Matt",
+            "Shea, Kevin",
             "Van Thong, Adrien",
         ],
 
@@ -85,13 +86,14 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
             "Bronner, Mark",
             "Burnham, John",
             "Chestna, Wayne",
-            "Lin, Wayzen",
+            "Hartford, Joe",
         ],
 
         "- Content Part 2": [
-            "Hartford, Joe",
+            "Lin, Wayzen",
             "Pannese, Donald",
             "Pinkney, Dave",
+            "Shea, Kevin",
         ],
 
         "- Ensemble": [
@@ -99,7 +101,6 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
             "Liang, Candy",
         ],
         "- HPP": [
-            "Shea, Kevin",
             "Wesley, Joe",
             "Moore, Jim",
         ],
@@ -267,14 +268,18 @@ class PersonRowWrapper:
     def getProduct(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.PROJECT).strip()
 
-    def getFloor(self):
+    def getFloors(self):
+        floors = list()
         for aFloor, managerNames in self.peopleDataKeys.FLOORS.iteritems():
             for aManagerName in managerNames:
-                if (self.getFullName() == self.getFullName(aManagerName)
-                or (self.getRawName() == self.getFullName(aManagerName))
-                or (self.getNormalizedRawName() == self.getFullName(aManagerName))):
-                    return aFloor
-        return ""
+                aFullName = self.getFullName(aManagerName)
+                if (self.getFullName() == aFullName
+                or (self.getRawName() == aFullName)
+                or (self.getNormalizedRawName() == aFullName)):
+                    floors.append(aFloor)
+        if not floors:
+            floors.append("")
+        return floors
 
     def getLocation(self):
         if not self.spreadsheetParser.columnExists(self.peopleDataKeys.LOCATION):

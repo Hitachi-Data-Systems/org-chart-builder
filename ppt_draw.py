@@ -56,18 +56,21 @@ class OrgDraw:
         # Could be a problem if a person has a manger that isn't entered as a row
         for aManagerName in self.orgParser.managerList:
             for aManager in managerList:
-                if aManager.getFullName() == aManager.getFullName(aManagerName):
+                aManagerFullName = aManager.getFullName(aManagerName)
+                if aManager.getFullName() == aManagerFullName or aManager.getNormalizedRawName() == aManagerFullName:
                     allManagerNames.remove(aManagerName)
 
         if allManagerNames:
             print "WARNING: Managers not drawn because they are not entered as row: {}".format(pprint.pformat(allManagerNames))
 
-
+        # A manager can have reports on more than one floor
         managersByFloor = {}
         for aManager in managerList:
-            if not aManager.getFloor() in managersByFloor:
-                managersByFloor[aManager.getFloor()] = set()
-            managersByFloor[aManager.getFloor()].add(aManager)
+            floors = aManager.getFloors()
+            for floor in floors:
+                if not floor in managersByFloor:
+                    managersByFloor[floor] = set()
+                managersByFloor[floor].add(aManager)
 
         # Location: There can be people across locations reporting to the same manager:
         # Example: People report to Arno in Santa Clara and in Milan.
@@ -429,6 +432,9 @@ if __name__ == "__main__":
     #sys.argv += ['-d', sDir, '-o%s/HPP_Charts.pptx' % sDir, 'HPP_Staff.xlsm']
     #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/tmp/'
     #sys.argv += ['-d', sDir, '-o%s/WalthamChartGen-moves.pptx' % sDir, 'WalthamStaff-moves.xlsm']
+    # test against SC
+    #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/Old/Santa Clara/'   
+    #sys.argv += ['-t', '-d', sDir, '-o%s/SantaClaraChartGen.pptx' % sDir, 'SantaClara Staff_04_28_2016.xlsm']
     main(sys.argv[1:])
 
 
