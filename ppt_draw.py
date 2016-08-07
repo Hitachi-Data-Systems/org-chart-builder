@@ -422,7 +422,20 @@ def main(argv):
     outputFileName = options.outputFile
     if not outputFileName:
         outputFileName = "{}{}".format(orgDraw.orgParser.orgName, defaultOutputFile)
-    orgDraw.save(outputFileName.strip())
+    outputFileName = outputFileName.strip()
+    modifiedName = outputFileName
+    for i in xrange(0, 10):
+        try:
+            orgDraw.save(modifiedName)
+            print "{} SAVED".format(modifiedName)
+            break
+        except Exception, e:
+            print "{} Save FAILED. Is it open already? Retrying".format(modifiedName)
+            outputFileNameParts = outputFileName.split(".")
+            outputFileNameParts.insert(-1, str(i))
+            modifiedName = ".".join(outputFileNameParts)
+    return modifiedName
+
 
 
 if __name__ == "__main__":
@@ -466,7 +479,7 @@ class GenChartCommandline(TestCase):
     def testSIBU(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
