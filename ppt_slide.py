@@ -392,17 +392,20 @@ class PeopleGroupTBH(PeopleGroup):
 
         firstName = aPerson.getFunction()
         title = "{}".format(aPerson.getTitle())
-        if aPerson.isTBH() and ("(" in aPerson.getFirstName()):
-            title = "{} ({}".format(title, "(".join(aPerson.getFirstName().split("(")[1:]))
-
         reqNumber = aPerson.getReqNumber()
+
+        earmarked = ""
+        if aPerson.isTBH() and ("(" in aPerson.getFullName()):
+            earmarked = "({}".format("(".join(aPerson.getFullName().split("(")[1:]))
+
+        reqNumber = "{} {} ".format(reqNumber, earmarked)
 
         aPersonRect.setFirstName(firstName)
         aPersonRect.firstNameSize = 7
 
         # If title is too long, only show the req number
-        if len(aPerson.getTitle()) + len(aPerson.getFunction()) > 37:
-            aPersonRect.setLastName(reqNumber)
+        if len(title) + len(aPerson.getFunction()) > 37:
+            aPersonRect.setTitle(reqNumber)
         else:
             aPersonRect.setLastName(title)
             aPersonRect.setTitle(reqNumber)

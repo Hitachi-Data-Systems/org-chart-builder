@@ -278,7 +278,7 @@ class OrgDraw:
 
     def _sortByFunc(self, a, b):
         funcOrder = ["lead", "leadership", "head coach", "product management", "pm", "po", "product owner", "product owner/qa", "technology", "ta", "technology architect", "tech", "sw architecture", "dev",
-                     "development", "development (connectors)" "qa", "quality assurance", "stress",
+                     "development", "development (connectors)", "qa", "quality assurance", "stress",
                      "characterization", "auto", "aut", "automation", "sustaining", "solutions and sustaining",
                      "ui", "ux", "ui/ux", "inf", "infrastructure", "devops", "cross functional", "cross", "doc",
                      "documentation"]
@@ -445,7 +445,7 @@ class GenChartCommandline(TestCase):
         outputFileName = "{cwd}{slash}{dateStamp}_SantaClaraOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
         #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-t", "-o {}".format(outputFileName)])
+        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
         # main(['C:\SantaClara Staff - Remodel.xlsm'])
 
         startCmd = 'start {}'.format(outputFileName)
@@ -467,20 +467,6 @@ class GenChartCommandline(TestCase):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
-        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
-        os.system("start " + outputFileName)
-
-    def testSIBU10M(self):
-        todayDate = datetime.date.today().strftime("%Y-%m-%d")
-        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart10M.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff10M.xlsm', "-t", "-o {}".format(outputFileName)])
-        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
-        os.system("start " + outputFileName)
-
-    def testSIBU40M(self):
-        todayDate = datetime.date.today().strftime("%Y-%m-%d")
-        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart40M.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff40M.xlsm', "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
