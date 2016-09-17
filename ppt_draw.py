@@ -473,13 +473,20 @@ class GenChartCommandline(TestCase):
         main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham\WalthamStaff.xlsm', "-t"])
 
     def testBellevue(self):
-        #main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue Staff.xlsm'])
+        #main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue SODOaff.xlsm'])
         main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue Staff.xlsm'])
 
     def testSIBU(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
+    def testSIBUPS(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\doreper On My Mac\Desktop\SIBUEngStaff - PS.xlsm', "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
