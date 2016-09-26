@@ -135,8 +135,8 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
             "Optimized Factory" : "[Forecast: Q1:1; Q2:6; Q3:13; Q4:15]",
         }
 
-    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "lumada - system", "pdm", "predictive maintenance", "lumada - studio",
-                          "optimized factory", "opf", "city data exchange", "cde", "lumada - ai"]
+    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "lumada - system", "pdm", "predictive maintenance", "lumada - studio",
+                          "optimized factory", "opf", "city data exchange", "cde", "lumada - ai", "lumada",  "cross", "global"]
 
 class PeopleDataKeysHPP(PeopleDataKeys):
     def __init__(self):
