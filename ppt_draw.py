@@ -121,6 +121,11 @@ class OrgDraw:
             peopleList = [aPerson for aPerson in productManagers if aPerson.getFeatureTeam() == aBucket]
             peopleList = sorted(peopleList, key=lambda x: x.getProduct(), cmp=self._sortByProduct)
 
+            # Set default name for PM who don't have 'feature team' set
+            # If default name isn't set, these people are accidentally filtered out in the
+            # buildGroup function
+            if not aBucket:
+                aBucket = orgchart_parser.NOT_SET
             self.buildGroup(aBucket, peopleList, chartDrawer)
 
         # peopleProducts = list(set([aPerson.getProduct() for aPerson in productManagers]))
