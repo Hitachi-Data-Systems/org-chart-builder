@@ -135,8 +135,10 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
             "Optimized Factory" : "[Forecast: Q1:1; Q2:6; Q3:13; Q4:15]",
         }
 
-    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "lumada - system", "pdm", "predictive maintenance", "lumada - studio",
-                          "optimized factory", "opf", "city data exchange", "cde", "lumada - ai", "lumada",  "cross", "global"]
+    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "tactical integration",
+                          "tactical integrations",  "lumada - system", "pdm", "predictive maintenance",
+                          "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
+                          "cde", "lumada - ai", "lumada", "cross", "lumada cross", "global"]
 
 class PeopleDataKeysHPP(PeopleDataKeys):
     def __init__(self):
@@ -363,7 +365,7 @@ class OrgParser:
             self.peopleDataKeys = PeopleDataKeysWaltham()
 
         if "hpp" in workbookName.lower():
-            self.peopleDataKeys = PeopleDataKeysHPP(useActualFunction)
+            self.peopleDataKeys = PeopleDataKeysHPP()
 
         if "bellevue" in workbookName.lower():
             self.peopleDataKeys = PeopleDataKeysBellevue()
