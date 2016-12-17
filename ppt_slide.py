@@ -300,6 +300,7 @@ class PeopleGroup(object):
         title = self._getTitle(aPerson)
 
         aPersonRect.setFirstName(firstName)
+        aPersonRect.setNickName(aPerson.getRawNickName())
         aPersonRect.setLastName(lastName)
         aPersonRect.setTitle(title)
         return aPersonRect
@@ -417,6 +418,7 @@ class PeopleGroupExpatIntern(PeopleGroup):
                                        MemberShapeDimensions.HEIGHT)
 
         aPersonRect.setFirstName(aPerson.getFirstName())
+        aPersonRect.setNickName(aPerson.getRawNickName())
         aPersonRect.setLastName(aPerson.getLastName())
         aPersonRect.setTitle(aPerson.getProduct())
         return aPersonRect
@@ -427,6 +429,7 @@ class PeopleGroupPM(PeopleGroup):
                                        MemberShapeDimensions.HEIGHT)
 
         aPersonRect.setFirstName(aPerson.getFirstName())
+        aPersonRect.setNickName(aPerson.getRawNickName())
         aPersonRect.setLastName(aPerson.getLastName())
         if aPerson.isTBH():
             aPersonRect.setLastName(aPerson.getReqNumber())

@@ -52,6 +52,7 @@ class RectangleBuilder(object):
         self.rgbFirstNameColor = self.rgbTextColor
         self.brightness = 0
         self.firstName = None
+        self.nickName = None
         self.lastName = None
         self.title = None
         self.heading = None
@@ -107,6 +108,9 @@ class RectangleBuilder(object):
         :type firstName: str
         """
         self.firstName = firstName
+
+    def setNickName(self, nickName):
+        self.nickName = nickName
 
     def setLastName(self, lastName):
         """
@@ -174,7 +178,11 @@ class RectangleBuilder(object):
         self.addRun(textFrame, self.firstName, self.firstNameSize, True, False, self.rgbFirstNameColor)
 
     def _buildLastName(self, textFrame):
-        self.addRun(textFrame, self.lastName, self.lastNameSize, False, False)
+        name = self.lastName
+        if self.nickName:
+            name = "({}){}".format(self.nickName, name)
+
+        self.addRun(textFrame, name, self.lastNameSize, False, False)
 
     def _buildTitle(self, textFrame):
         title = self.title

@@ -119,7 +119,9 @@ class OrgDraw:
 
         for aBucket in productBuckets:
             peopleList = [aPerson for aPerson in productManagers if aPerson.getFeatureTeam() == aBucket]
-            peopleList = sorted(peopleList, key=lambda x: x.getProduct(), cmp=self._sortByProduct)
+            # peopleList = sorted(peopleList, key=lambda x: x.getProduct(), cmp=self._sortByProduct)
+            peopleList.sort()
+
 
             # Set default name for PM who don't have 'feature team' set
             # If default name isn't set, these people are accidentally filtered out in the
@@ -429,6 +431,7 @@ def main(argv):
         outputFileName = "{}{}".format(orgDraw.orgParser.orgName, defaultOutputFile)
     outputFileName = outputFileName.strip()
     modifiedName = outputFileName
+
     for i in xrange(0, 10):
         try:
             orgDraw.save(modifiedName)
@@ -463,7 +466,7 @@ class GenChartCommandline(TestCase):
         outputFileName = "{cwd}{slash}{dateStamp}_SantaClaraOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
         #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
+        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\Santa Clara Staff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
         # main(['C:\SantaClara Staff - Remodel.xlsm'])
 
         startCmd = 'start {}'.format(outputFileName)
@@ -488,10 +491,10 @@ class GenChartCommandline(TestCase):
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
-    def testSIBUPS(self):
+    def test(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        outputFileName = main(['Z:\doreper On My Mac\Desktop\SIBUEngStaff - PS.xlsm', "-t", "-o {}".format(outputFileName)])
+        outputFileName = main(['Z:\doreper On My Mac\Desktop\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 

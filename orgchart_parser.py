@@ -123,10 +123,10 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     NAME = "HR Name"
-    NICK_NAME = NAME
+    NICK_NAME = "Nickname"
     REQ = "Requisition"
     TEAM_MODEL = {
-            "HVS" : "[Forecast: Q1:20; Q2:26; Q3:29; Q4:32] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
+            "HVS" : "[Forecast: Q1:20; Q2:26; Q3:29; Q4:34] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
             "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
             "Lumada - System" : "[Forecast: Q1:7; Q2:6; Q3:43; Q4:110]",
             "Lumada - Studio" : "[Forecast: Q1:7; Q2:10; Q3:43; Q4:110]",
@@ -135,10 +135,10 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
             "Optimized Factory" : "[Forecast: Q1:1; Q2:6; Q3:13; Q4:15]",
         }
 
-    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "tactical integration",
+    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "technology", "tactical integration",
                           "tactical integrations",  "lumada - system", "pdm", "predictive maintenance",
                           "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
-                          "cde", "lumada - ai", "lumada", "cross", "lumada cross", "global"]
+                          "cde", "lumada - ai", "lumada - di", "lumada", "cross", "lumada cross", "global"]
 
 class PeopleDataKeysHPP(PeopleDataKeys):
     def __init__(self):
@@ -184,8 +184,8 @@ class PersonRowWrapper:
 
     def getFirstName(self, aName=None):
         if not aName:
-            #if Nickname is blank but raw name is populated - use that
-            aName = self.getRawNickName() or self.getRawName()
+            #if HRName  is blank but nick name is populated - use that
+            aName = self.getRawName() or self.getRawNickName()
 
         if "," in aName:
             return " ".join(aName.split(",")[1:]).strip()
@@ -193,8 +193,8 @@ class PersonRowWrapper:
 
     def getLastName(self, aName=None):
         if not aName:
-            #if Nickname is blank but raw name is populated - use that
-            aName = self.getRawNickName() or self.getRawName()
+            #if HR Name is blank but nick name is populated - use that
+            aName = self.getRawName() or self.getRawNickName()
 
         if "," in aName:
             return aName.split(",")[0].strip()
