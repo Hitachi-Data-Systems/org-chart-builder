@@ -125,6 +125,7 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     NAME = "HR Name"
     NICK_NAME = "Nickname"
     REQ = "Requisition"
+    LEVEL = "Title"
     TEAM_MODEL = {
             "HVS" : "[Forecast: Q1:20; Q2:26; Q3:29; Q4:34] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
             "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
