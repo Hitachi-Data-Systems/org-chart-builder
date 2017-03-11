@@ -267,6 +267,9 @@ class OrgDraw:
         tbhLocations = set([aTBH.getLocation() for aTBH in totalTBHSet]) or [""]
         tbhProducts = list(set([aTBH.getProduct() for aTBH in totalTBHSet])) or [""]
         tbhProducts.sort(cmp=self._sortByProduct)
+        tbhFunctions = list(set([aTBH.getFunction() for aTBH in totalTBHSet]))
+        tbhFunctions.sort(cmp=self._sortByFunc)
+
 
         for aLocation in tbhLocations:
             title = "Hiring"
@@ -276,12 +279,20 @@ class OrgDraw:
                 title = "{} - {}".format(title, aLocation)
 
             chartDrawer = DrawChartSlideTBH(self.presentation, title, self.slideLayout)
-            for aProduct in tbhProducts:
-                productTBHList = self.orgParser.getFilteredPeople(PeopleFilter().addIsTBHFilter().addProductFilter(aProduct).addLocationFilter(aLocation))
+
+            for aFunction in tbhFunctions:
+                productTBHList = self.orgParser.getFilteredPeople(PeopleFilter().addIsTBHFilter().addFunctionFilter(aFunction).addLocationFilter(aLocation))
                 productTBHList = sorted(productTBHList, self._sortByFunc, lambda tbh: tbh.getProduct())
-                self.buildGroup(aProduct, productTBHList, chartDrawer)
+                self.buildGroup(aFunction, productTBHList, chartDrawer)
 
             chartDrawer.drawSlide()
+
+            # for aProduct in tbhProducts:
+            #     productTBHList = self.orgParser.getFilteredPeople(PeopleFilter().addIsTBHFilter().addProductFilter(aProduct).addLocationFilter(aLocation))
+            #     productTBHList = sorted(productTBHList, self._sortByFunc, lambda tbh: tbh.getProduct())
+            #     self.buildGroup(aProduct, productTBHList, chartDrawer)
+            #
+            # chartDrawer.drawSlide()
 
     def _sortByFunc(self, a, b):
         funcOrder = ["lead", "leadership", "head coach", "product management", "pm", "po", "product owner", "product owner/qa", "technology", "ta", "technology architect", "tech", "sw architecture", "dev",
@@ -454,7 +465,7 @@ if __name__ == "__main__":
     #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/tmp/'
     #sys.argv += ['-d', sDir, '-o%s/WalthamChartGen-moves.pptx' % sDir, 'WalthamStaff-moves.xlsm']
     # test against SC
-    #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/Old/Santa Clara/'   
+    #sDir = '/Users/dpinkney/Documents/HCPAnywhere/SharedWithMe/Waltham Engineering Org Charts/Old/Santa Clara/'
     #sys.argv += ['-t', '-d', sDir, '-o%s/SantaClaraChartGen.pptx' % sDir, 'SantaClara Staff_04_28_2016.xlsm']
     main(sys.argv[1:])
 

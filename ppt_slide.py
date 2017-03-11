@@ -391,7 +391,7 @@ class PeopleGroupTBH(PeopleGroup):
         aPersonRect = RectangleBuilder(self.memberLeft, self.memberTop, MemberShapeDimensions.WIDTH,
                                        MemberShapeDimensions.HEIGHT)
 
-        firstName = aPerson.getFunction()
+        firstName = aPerson.getProduct()
         title = "{}".format(aPerson.getTitle())
         reqNumber = aPerson.getReqNumber()
 
