@@ -137,9 +137,9 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
         }
 
     PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "technology", "tactical integration",
-                          "tactical integrations",  "lumada - system", "pdm", "predictive maintenance",
+                          "tactical integrations",  "lumada - system", "bel iiot", "lumada platform", "pdm", "predictive maintenance",
                           "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
-                          "cde", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
+                          "cde", "denver", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
 
 class PeopleDataKeysHPP(PeopleDataKeys):
     def __init__(self):
