@@ -180,7 +180,10 @@ class RectangleBuilder(object):
     def _buildLastName(self, textFrame):
         name = self.lastName
         if self.nickName:
-            name = "({}){}".format(self.nickName, name)
+            # If the nickname has multiple parts, it's not a nickname, it's probably the full name so
+            # should not be added redundantly
+            if len(self.nickName.split(" ")) <= 1 and len(self.nickName.split(",")) <= 1:
+               name = "({}){}".format(self.nickName, name)
 
         self.addRun(textFrame, name, self.lastNameSize, False, False)
 
