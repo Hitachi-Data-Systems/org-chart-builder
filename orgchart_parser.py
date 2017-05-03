@@ -71,51 +71,62 @@ class PeopleDataKeysWaltham(PeopleDataKeys):
     FUNCTION = "Function"
     NAME = "HR Name"
     NICK_NAME = "Name"
-    CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
+    CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Sustaining" ]
     FLOORS = {
         "- Mobility": [
-            "Anderson, Vic", 
+            "Anderson, Vic",
             "Kostadinov, Alex",
             "Lin, Wayzen",
+            "Manjanatha, Sowmya",
+            "Maruca, Fran",
             "Pfahl, Matt",
-            "Shea, Kevin",
             "Van Thong, Adrien",
         ],
 
         "- Content Part 1": [
+            "Boba, Andrew",
             "Bronner, Mark",
             "Burnham, John",
             "Chestna, Wayne",
-            "Hartford, Joe",
         ],
 
         "- Content Part 2": [
-            "Lin, Wayzen",
-            "Pannese, Donald",
-            "Pinkney, Dave",
+            "Lee, Jonathan",
             "Shea, Kevin",
         ],
 
-        "- Ensemble": [
-            "Isherwood, Ben",
+        "- Aspen": [
+            "Hartford, Joe",
             "Liang, Candy",
         ],
         "- HPP": [
             "Wesley, Joe",
             "Moore, Jim",
         ],
+	"- HDID": [
+	    "Agashe, Sujata",
+            "Caswell, Paul",
+            "Chappell, Simon",
+            "Gothoskar, Chandrashekhar",
+            "Helliker, Fabrice",
+            "Mason, Bill",
+            "Melville, Andrew",
+            "Pendlebury, Ian",
+            "Pfaff, Florian",
+            "Sinkar, Milind",
+	],
     }
 
     TEAM_MODEL = {
-        "Aspen" : "1 Track @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
-        "Ensemble" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
-        "HCP" : "4 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
-        "HCP (Rhino)" : "1 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
-        "HCP-AW" : "3 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "Aspen" : "4 Tracks @ (1 PO, 3 Dev, 1 QA, 1 Char, 1 Auto)",
+        "HCP-Rhino" : "4 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
+        "HCP-India" : "1 Track @ (1 PO, 3 Dev, 1 QA, 1 Auto)",
+#        "HCP (Rhino)" : "1 Track @ (1 PO, 4 Dev, 2 QA, 2 Char, 2 Auto)",
+        "HCP-AW" : "4 Tracks @ (1 PO, 4 Dev, 2 QA, 1 Char, 2 Auto)",
         }
 
     # names should be lower case here
-    PRODUCT_SORT_ORDER = ["aspen", "ensemble", "hcp", "hcp (rhino)", "hcp-aw", "hpp" ]
+    PRODUCT_SORT_ORDER = ["aspen", "ensemble", "hcp-rhino", "hcp-india", "hcp-aw", "aw-japan","hpp", "hpp-india", "hdid-uk", "hdid-waltham", "hdid-germany", "hdid-pune", "future funding"]
     FLOOR_SORT_ORDER = ["- ensemble", "- content part 1", "- content part 2", "- mobility", "- hpp" ]
 
 
