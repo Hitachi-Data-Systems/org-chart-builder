@@ -148,9 +148,9 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
         }
 
     PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "technology", "tactical integration",
-                          "tactical integrations",  "lumada - system", "bel iiot", "lumada platform", "pdm", "predictive maintenance",
+                          "tactical integrations",  "lumada - system", "sc iiot", "bel iiot", "lumada platform", "pdm", "predictive maintenance",
                           "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
-                          "cde", "denver", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
+                          "cde", "denver", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - hci", "hci", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
 
 class PeopleDataKeysHPP(PeopleDataKeys):
     def __init__(self):
@@ -160,8 +160,8 @@ class PeopleDataKeysHPP(PeopleDataKeys):
     NICK_NAME = "Name"
     #CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
 
-    def __init__(self, useActualFunction):
-        PeopleDataKeys.__init__(self, useActualFunction)
+    def __init__(self):
+        PeopleDataKeys.__init__(self)
 
 class PersonRowWrapper:
     def __init__(self, spreadsheetParser, peopleDataKeys, aRow):
@@ -353,16 +353,164 @@ class PersonRowWrapper:
         return not self.__lt__(other)
 
     def __eq__(self, other):
-        #return self.getFullName() == other.getFullName()
-        return self.aRow[00].row == other.aRow[00].aRow
+        """
+        Compare entries in the spreadsheet based on their fullname. If the entry is 'TBH', assume it's unique.
+
+        :param other:
+        :return:
+        """
+        if not isinstance(other, PersonRowWrapper):
+            return False
+
+        # All TBHs have the same name so we assume each one is unique or they would all
+        # get merged into 1
+        if other.isTBH():
+            return False
+
+        if self.getFullName() == other.getFullName():
+            return True
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.aRow[00].row)
+        return hash(self.getFullName())
+
 
 class OrgParser:
+    def getManagerSet(self):
+        raise NotImplementedError
+
+    def getPerson(self, aRow):
+        raise NotImplementedError
+
+    def getProductSet(self):
+        raise NotImplementedError
+
+    def getFeatureTeamSet(self, productName):
+        raise NotImplementedError
+
+    def getFunctionSet(self, productName=None):
+        raise NotImplementedError
+
+    def getLocationSet(self, productName=""):
+        raise NotImplementedError
+
+    def getPeople(self):
+        raise NotImplementedError
+
+    def getFilteredPeople(self, peopleFilter=None):
+        raise NotImplementedError
+
+    def getOrgName(self):
+        raise NotImplementedError
+
+    def getCrossFuncPeople(self):
+        raise NotImplementedError
+
+    def getTeamModel(self):
+        raise NotImplementedError
+
+    def getCrossFunctions(self):
+        raise NotImplementedError
+
+    def getFloorSortOrder(self):
+        raise NotImplementedError
+
+    def getProductSortOrder(self):
+        raise NotImplementedError
+
+class MultiOrgParser(OrgParser):
+    def __init__(self, workbookNames, dataSheetName):
+        self.orgSheets = []
+        for aWorkbook in workbookNames:
+            self.orgSheets.append(SingleOrgParser(aWorkbook, dataSheetName))
+
+    def getOrgName(self):
+        # If there is only 1 org sheet, use that name
+        if 1 == len(self.orgSheets):
+            return self.orgSheets[0].getOrgName()
+        # If there are multiple, leave it empty since it's multiple orgs
+        return ""
+
+    def getManagerSet(self):
+        managerSet = set()
+        for orgSheet in self.orgSheets:
+            managerSet.update(orgSheet.getManagerSet())
+        return managerSet
+
+    def getProductSet(self):
+        productSet = set()
+        for orgSheet in self.orgSheets:
+            productSet.update(orgSheet.getProductSet())
+        return productSet
+
+    def getFeatureTeamSet(self, productName):
+        featureTeamSet = set()
+        for orgSheet in self.orgSheets:
+            featureTeamSet.update(orgSheet.getFeatureTeamSet(productName))
+        return featureTeamSet
+
+    def getFunctionSet(self, productName=None):
+        functionSet = []
+        for orgSheet in self.orgSheets:
+            functionSet.extend(orgSheet.getFunctionSet(productName))
+        return functionSet
+
+    def getLocationSet(self, productName=""):
+        locationSet = set()
+        for orgSheet in self.orgSheets:
+            locationSet.update(orgSheet.getLocationSet(productName))
+        return locationSet
+
+    def getFilteredPeople(self, peopleFilter=None):
+        filteredPeople = set()
+        for orgSheet in self.orgSheets:
+            filteredPeople.update(orgSheet.getFilteredPeople(peopleFilter))
+
+        filteredPeople = list(filteredPeople)
+        filteredPeople.sort()
+        return filteredPeople
+
+    def getCrossFuncPeople(self):
+        crossFuncPeople = set()
+        for orgSheet in self.orgSheets:
+            crossFuncPeople.update(orgSheet.getCrossFuncPeople())
+        return crossFuncPeople
+
+    def getTeamModel(self):
+        teamModel = {}
+        for orgSheet in self.orgSheets:
+            teamModel.update(orgSheet.getTeamModel())
+        return teamModel
+
+    def getCrossFunctions(self):
+        crossFunctions = set()
+        for orgSheet in self.orgSheets:
+            crossFunctions.update(orgSheet.getCrossFunctions())
+        return crossFunctions
+
+    def getProductSortOrder(self):
+        productSortOrder = []
+        for orgSheet in self.orgSheets:
+            productSortOrder.extend(orgSheet.getProductSortOrder())
+        return productSortOrder
+
+    def getFloorSortOrder(self):
+        floorSortOrder = []
+        for orgSheet in self.orgSheets:
+            floorSortOrder.extend(orgSheet.getFloorSortOrder())
+        return floorSortOrder
+
+    def getCrossFuncTeams(self):
+        crossFuncTeams = set()
+        for orgSheet in self.orgSheets:
+            crossFuncTeams.update(orgSheet.getCrossFuncTeam())
+        return crossFuncTeams
+
+
+
+class SingleOrgParser(OrgParser):
     def __init__(self, workbookName, dataSheetName, ):
         """
 
@@ -371,30 +519,42 @@ class OrgParser:
         """
 
         self.peopleDataKeys = PeopleDataKeys()
-        self.orgName = os.path.basename(workbookName.split("Staff")[0].strip())
+        filename = os.path.basename(workbookName).lower()
+        self.orgName = filename.split("Staff")[0].strip()
 
-        if "waltham" in workbookName.lower():
+
+
+        if "waltham" in filename or "content" in filename:
             self.peopleDataKeys = PeopleDataKeysWaltham()
 
-        if "hpp" in workbookName.lower():
+        if "hpp" in filename:
             self.peopleDataKeys = PeopleDataKeysHPP()
 
-        if "bellevue" in workbookName.lower():
+        if "bellevue" in filename:
             self.peopleDataKeys = PeopleDataKeysBellevue()
 
-        if "clara" in workbookName.lower():
+        if "clara" in filename:
             self.peopleDataKeys = PeopleDataKeysSantaClara()
 
-        if "sibu" in workbookName.lower():
+        if "sibu" in filename:
             self.peopleDataKeys = PeopleDataKeysSIBU()
 
         self.spreadsheetParser = SpreadsheetParser(workbookName, dataSheetName)
-        self.managerList = self.getManagerSet()
+
+        # Manager set needs to be created and cached at the start so when an individual person is created, we can check
+        # whether the person is a manager
+        self.managerSet = set()
+        self.managerSet = self.getManagerSet()
+
+    def getOrgName(self):
+        return self.orgName
 
     def getManagerSet(self):
         """
         :return:
         """
+        if self.managerSet:
+            return self.managerSet
         managerSet = set()
         for aRow in self.spreadsheetParser.dataRows():
             managerName = self.spreadsheetParser.getColValueByName(aRow, self.peopleDataKeys.MANAGER)
@@ -402,21 +562,13 @@ class OrgParser:
                 managerSet.add(managerName)
         return managerSet
 
-    def getPerson(self, aRow):
-        aPerson = PersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
-        if (aPerson.getRawName() in self.managerList
-            or aPerson.getRawNickName() in self.managerList
-            or aPerson.getFullName() in self.managerList):
-            aPerson.setManager()
-        return aPerson
-
     def getProductSet(self):
         """
 
         :return:
         """
         productSet = set()
-        for aPerson in self.getPeople():
+        for aPerson in self._getPeople():
             productSet.add(aPerson.getProduct())
         return productSet
 
@@ -444,11 +596,6 @@ class OrgParser:
             locationSet.add(aPerson.getLocation())
         return locationSet
 
-    def getPeople(self):
-        for aRow in self.spreadsheetParser.dataRows():
-            aPerson = self.getPerson(aRow)
-            yield aPerson
-
     def getFilteredPeople(self, peopleFilter=None):
         """ Get all the people that match the filter
         """
@@ -457,17 +604,56 @@ class OrgParser:
 
         matchingPeople = []
 
-        for aPerson in self.getPeople():
+        for aPerson in self._getPeople():
             if (aPerson.getRawNickName() or aPerson.getRawName()) and peopleFilter.isMatch(aPerson):
                 matchingPeople.append(aPerson)
-        matchingPeople.sort()
         return matchingPeople
 
+    def getCrossFuncPeople(self):
+        crossFuncPeople = []
+        # All the global 'cross func' people
+        for aFunc in self.peopleDataKeys.CROSS_FUNCTIONS:
+            crossFuncPeople.extend(self.getFilteredPeople(PeopleFilter().addFunctionFilter(aFunc)))
+
+        # Add folks directly on the cross func team
+        crossFuncTeam = self.getFilteredPeople(PeopleFilter().addProductFilter(self.peopleDataKeys.CROSS_FUNCT_TEAM))
+        crossFuncPeople.extend(crossFuncTeam)
+
+        return crossFuncPeople
+
+    def getTeamModel(self):
+        return self.peopleDataKeys.TEAM_MODEL
+
+    def getCrossFunctions(self):
+        return self.peopleDataKeys.CROSS_FUNCTIONS
+
+    def getFloorSortOrder(self):
+        return self.peopleDataKeys.FLOOR_SORT_ORDER
+
+    def getProductSortOrder(self):
+        return self.peopleDataKeys.PRODUCT_SORT_ORDER
+
+    def getCrossFuncTeam(self):
+        return self.peopleDataKeys.CROSS_FUNCT_TEAM
+
+    def _getPerson(self, aRow):
+        aPerson = PersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
+        managerSet = self.getManagerSet()
+        if (aPerson.getRawName() in managerSet
+            or aPerson.getRawNickName() in managerSet
+            or aPerson.getFullName() in managerSet):
+            aPerson.setManager()
+        return aPerson
+
+    def _getPeople(self):
+
+        for aRow in self.spreadsheetParser.dataRows():
+            aPerson = self._getPerson(aRow)
+            yield aPerson
 
 class PeopleFilter:
     def __init__(self):
         self.filterList = []
-
 
     def addManagerFilter(self, manager):
         self.filterList.append(ManagerCriteria(manager))

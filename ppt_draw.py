@@ -7,7 +7,7 @@ import pprint
 from unittest import TestCase
 import datetime
 
-from orgchart_parser import OrgParser, PeopleFilter
+from orgchart_parser import MultiOrgParser, PeopleFilter
 import sys
 from pptx import Presentation
 import orgchart_parser
@@ -17,7 +17,7 @@ __author__ = 'David Oreper'
 
 
 class OrgDraw:
-    def __init__(self, workbookPath, sheetName, draftMode):
+    def __init__(self, workbookPaths, sheetName, draftMode):
         """
 
         :type workbookPath: str
@@ -27,7 +27,7 @@ class OrgDraw:
         self.presentation.slide_height = DrawChartSlide.MAX_HEIGHT_INCHES
         self.presentation.slide_width = DrawChartSlide.MAX_WIDTH_INCHES
         self.slideLayout = self.presentation.slide_layouts[4]
-        self.orgParser = OrgParser(workbookPath, sheetName)
+        self.multiOrgParser = MultiOrgParser(workbookPaths, sheetName)
         self.draftMode = draftMode
 
     def save(self, filename):
@@ -44,17 +44,17 @@ class OrgDraw:
         peopleFilter.addManagerFilter(aManager)
         peopleFilter.addIsTBHFilter(False)
         peopleFilter.addLocationFilter(location)
-        directReports.extend(self.orgParser.getFilteredPeople(peopleFilter))
+        directReports.extend(self.multiOrgParser.getFilteredPeople(peopleFilter))
 
         return directReports
 
     def drawAdmin(self):
-        managerList = self.orgParser.getFilteredPeople(PeopleFilter().addIsManagerFilter())
-        allManagerNames = list(self.orgParser.managerList)
+        managerList = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsManagerFilter())
+        allManagerNames = list(self.multiOrgParser.getManagerSet())
 
         # Make sure we're adding all managers.
         # Could be a problem if a person has a manger that isn't entered as a row
-        for aManagerName in self.orgParser.managerList:
+        for aManagerName in self.multiOrgParser.getManagerSet():
             for aManager in managerList:
                 aManagerFullName = aManager.getFullName(aManagerName)
                 if aManager.getFullName() == aManagerFullName or aManager.getNormalizedRawName() == aManagerFullName:
@@ -76,8 +76,8 @@ class OrgDraw:
         # Example: People report to Arno in Santa Clara and in Milan.
         # There will be a single slide for each unique location. Only direct reports in the specified location will be
         # drawn
-        for aLocation in self.orgParser.getLocationSet():
-            locationName = aLocation or self.orgParser.orgName
+        for aLocation in self.multiOrgParser.getLocationSet():
+            locationName = aLocation or self.multiOrgParser.getOrgName()
 
             # Floor: The floor (or other grouping) that separates manager.
             # Example: There are a lot of managers in Waltham so we break them up across floors
@@ -87,6 +87,10 @@ class OrgDraw:
             sortedFloors = list(managersByFloor.keys())
             sortedFloors.sort(cmp=self._sortByFloor)
 
+            maxManagersPerSlide = 7
+            managersOnSlide = 0
+            slideNameAddendum = "pt2"
+
             for aFloor in sortedFloors:
                 managerList = managersByFloor[aFloor]
                 chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {}".format(locationName, aFloor), self.slideLayout)
@@ -95,22 +99,32 @@ class OrgDraw:
                 for aManager in managerList:
                     directReports = []
                     directReports.extend(self._getDirects(aManager, aLocation))
+                    if not directReports:
+                        continue
                     self.buildGroup(aManager.getFullName(), directReports, chartDrawer)
+                    managersOnSlide += 1
+
+                    # Split the slide into multiple parts if it's getting too crowded
+                    if managersOnSlide == maxManagersPerSlide:
+                        managersOnSlide = 0
+                        chartDrawer.drawSlide()
+                        chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {} {}".format(locationName, aFloor, slideNameAddendum), self.slideLayout)
+                        slideNameAddendum = "pt3"
+
                 chartDrawer.drawSlide()
+                managersOnSlide = 0
 
         peopleMissingManager = self._getDirects("")
         if peopleMissingManager:
             print "People missing manager: {}".format(pprint.pformat(peopleMissingManager))
 
-
     def drawExpat(self):
-        expats = self.orgParser.getFilteredPeople(PeopleFilter().addIsExpatFilter())
+        expats = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsExpatFilter())
                     #.addIsProductManagerFilter(False))
         self._drawMiscGroups("ExPat", expats)
 
-
     def drawProductManger(self):
-        productManagers = self.orgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter())
+        productManagers = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter())
         if not len(productManagers):
             return
         chartDrawer = DrawChartSlidePM(self.presentation, "Product Management", self.slideLayout)
@@ -121,7 +135,6 @@ class OrgDraw:
             peopleList = [aPerson for aPerson in productManagers if aPerson.getFeatureTeam() == aBucket]
             # peopleList = sorted(peopleList, key=lambda x: x.getProduct(), cmp=self._sortByProduct)
             peopleList.sort()
-
 
             # Set default name for PM who don't have 'feature team' set
             # If default name isn't set, these people are accidentally filtered out in the
@@ -136,7 +149,7 @@ class OrgDraw:
         chartDrawer.drawSlide()
 
     def drawIntern(self):
-        interns = self.orgParser.getFilteredPeople(PeopleFilter().addIsInternFilter())
+        interns = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsInternFilter())
         self._drawMiscGroups("Intern", interns)
 
     def _drawMiscGroups(self, slideName, peopleList):
@@ -152,12 +165,7 @@ class OrgDraw:
     def drawCrossFunc(self):
         crossFuncPeople = []
 
-        for aFunc in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
-            crossFuncPeople.extend(self.orgParser.getFilteredPeople(
-                PeopleFilter().addFunctionFilter(aFunc)))
-
-        crossFuncTeam = self.orgParser.getFilteredPeople(PeopleFilter().addProductFilter(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM))
-        crossFuncPeople.extend(crossFuncTeam)
+        self.multiOrgParser.getCrossFuncPeople()
 
         if not len(crossFuncPeople):
             return
@@ -174,19 +182,20 @@ class OrgDraw:
             peopleFilter.addIsExpatFilter(False)
             peopleFilter.addIsInternFilter(False)
 
-            funcPeople = self.orgParser.getFilteredPeople(peopleFilter)
+            funcPeople = self.multiOrgParser.getFilteredPeople(peopleFilter)
             self.buildGroup(aFunction, funcPeople, chartDrawer)
         chartDrawer.drawSlide()
 
     def drawAllProducts(self, drawFeatureTeams, drawLocations, drawExpatsInTeam):
         #Get all the products except the ones where a PM is the only member
-        people = self.orgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter(False))
+        people = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsProductManagerFilter(False))
 
         productList = list(set([aPerson.getProduct() for aPerson in people]))
 
-        if self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM in productList:
-            productList.remove(self.orgParser.peopleDataKeys.CROSS_FUNCT_TEAM)
-        productList.sort(cmp=self._sortByProduct)
+        for aCrossFuncTeam in self.multiOrgParser.getCrossFuncTeams():
+            if aCrossFuncTeam in productList:
+                productList.remove(aCrossFuncTeam)
+            productList.sort(cmp=self._sortByProduct)
 
         for aProductName in productList:
             self.drawProduct(aProductName, drawFeatureTeams, drawLocations, drawExpatsInTeam)
@@ -195,7 +204,6 @@ class OrgDraw:
         """
 
         :type productName: str
-        :type chartDrawer: ppt_draw.DrawChartSlide
         """
         if not productName:
             if not self.draftMode:
@@ -203,19 +211,19 @@ class OrgDraw:
 
         featureTeamList = [""]
         if drawFeatureTeams:
-            featureTeamList = list(self.orgParser.getFeatureTeamSet(productName))
+            featureTeamList = list(self.multiOrgParser.getFeatureTeamSet(productName))
 
-        functionList = list(self.orgParser.getFunctionSet(productName))
+        functionList = list(self.multiOrgParser.getFunctionSet(productName))
         functionList.sort(cmp=self._sortByFunc)
 
         teamModelText = None
 
         locations = [""]
         if drawLocations:
-            locations = self.orgParser.getLocationSet(productName)
+            locations = self.multiOrgParser.getLocationSet(productName)
 
         for aLocation in locations:
-            locationName = aLocation.strip() or self.orgParser.orgName
+            locationName = aLocation.strip() or self.multiOrgParser.getOrgName()
 
             for aFeatureTeam in featureTeamList:
                 if not productName:
@@ -230,7 +238,7 @@ class OrgDraw:
                     slideTitle = "{} {}Feature Team".format(productName, teamName)
                 else:
                     slideTitle = "{}".format(productName)
-                    modelDict = self.orgParser.peopleDataKeys.TEAM_MODEL
+                    modelDict = self.multiOrgParser.getTeamModel()
                     if productName in modelDict:
                         teamModelText = modelDict[productName]
 
@@ -239,7 +247,7 @@ class OrgDraw:
                    chartDrawer.setLocation(locationName)
 
                 for aFunction in functionList:
-                    if aFunction.lower() in self.orgParser.peopleDataKeys.CROSS_FUNCTIONS:
+                    if aFunction.lower() in self.multiOrgParser.getCrossFunctions():
                         continue
 
                     peopleFilter = PeopleFilter()
@@ -256,14 +264,14 @@ class OrgDraw:
                         peopleFilter.addIsInternFilter(False)
                         # peopleFilter.addIsProductManagerFilter(False)
 
-                    functionPeople = self.orgParser.getFilteredPeople(peopleFilter)
+                    functionPeople = self.multiOrgParser.getFilteredPeople(peopleFilter)
                     self.buildGroup(aFunction, functionPeople, chartDrawer)
 
                 chartDrawer.drawSlide()
 
     def drawTBH(self):
 
-        totalTBHSet = set(self.orgParser.getFilteredPeople(PeopleFilter().addIsTBHFilter()))
+        totalTBHSet = set(self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsTBHFilter()))
         tbhLocations = set([aTBH.getLocation() for aTBH in totalTBHSet]) or [""]
         tbhProducts = list(set([aTBH.getProduct() for aTBH in totalTBHSet])) or [""]
         tbhProducts.sort(cmp=self._sortByProduct)
@@ -281,7 +289,7 @@ class OrgDraw:
             chartDrawer = DrawChartSlideTBH(self.presentation, title, self.slideLayout)
 
             for aFunction in tbhFunctions:
-                productTBHList = self.orgParser.getFilteredPeople(PeopleFilter().addIsTBHFilter().addFunctionFilter(aFunction).addLocationFilter(aLocation))
+                productTBHList = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsTBHFilter().addFunctionFilter(aFunction).addLocationFilter(aLocation))
                 productTBHList = sorted(productTBHList, self._sortByFunc, lambda tbh: tbh.getProduct())
                 self.buildGroup(aFunction, productTBHList, chartDrawer)
 
@@ -313,7 +321,7 @@ class OrgDraw:
         return 0
 
     def _sortByFloor(self, a, b):
-        floorOrder = self.orgParser.peopleDataKeys.FLOOR_SORT_ORDER
+        floorOrder = self.multiOrgParser.getFloorSortOrder()
 
         if a.lower() in floorOrder:
             if b.lower() in floorOrder:
@@ -327,7 +335,7 @@ class OrgDraw:
         return 0
 
     def _sortByProduct(self, a, b):
-        productOrder = self.orgParser.peopleDataKeys.PRODUCT_SORT_ORDER
+        productOrder = self.multiOrgParser.getProductSortOrder()
 
         if a.lower() in productOrder:
             if b.lower() in productOrder:
@@ -382,7 +390,7 @@ def main(argv):
     information in a format that can easily be pasted into an excel smartArt chart builder""",
                                      epilog=examples, formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument("path", nargs="+", type=str,
+    parser.add_argument("path", nargs="+",
                         help="unique file token for file in directory specified by '-d [default={}]' ".format(
                             defaultDir))
 
@@ -401,28 +409,30 @@ def main(argv):
                              "people with missing fields are not represented on the chart".format(
                             orgchart_parser.NOT_SET))
 
-
     options = parser.parse_args(argv)
 
-    specifiedPath = " ".join(options.path)
-    if os.path.exists(specifiedPath):
-        workbookPath = specifiedPath
-    else:
-        fileMatch = glob.glob(os.path.join(options.directory, "*{}*".format(specifiedPath)))
-        fileMatch = [aFile for aFile in fileMatch if
-                     (not ((os.path.basename(aFile).startswith("~")) or "conflict" in os.path.basename(aFile).lower()))]
-        if not fileMatch:
-            raise OSError("Could not find any files in directory: '{}' that contain string: '{}'"
-                          .format(options.directory, specifiedPath))
-        if len(fileMatch) > 1:
-            raise OSError(
-                "Too many files found in dir: '{}' that contain string '{}' : \n\t\t{}".format(options.directory,
-                                                                                               specifiedPath,
-                                                                                               "\n\t\t".join(
-                                                                                                   fileMatch)))
-        workbookPath = fileMatch[0]
 
-    orgDraw = OrgDraw(workbookPath, options.sheetName, options.draftMode)
+
+    workbooks = []
+    for aPath in options.path:
+        if os.path.exists(aPath):
+            workbooks.append(aPath)
+        else:
+            fileMatch = glob.glob(os.path.join(options.directory, "*{}*".format(aPath)))
+            fileMatch = [aFile for aFile in fileMatch if
+                         (not ((os.path.basename(aFile).startswith("~")) or "conflict" in os.path.basename(aFile).lower()))]
+            if not fileMatch:
+                raise OSError("Could not find any files in directory: '{}' that contain string: '{}'"
+                              .format(options.directory, aPath))
+            if len(fileMatch) > 1:
+                raise OSError(
+                    "Too many files found in dir: '{}' that contain string '{}' : \n\t\t{}".format(options.directory,
+                                                                                                   aPath,
+                                                                                                   "\n\t\t".join(
+                                                                                                       fileMatch)))
+            workbooks.append(fileMatch[0])
+
+    orgDraw = OrgDraw(workbooks, options.sheetName, options.draftMode)
 
     orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
     orgDraw.drawCrossFunc()
@@ -439,7 +449,7 @@ def main(argv):
 
     outputFileName = options.outputFile
     if not outputFileName:
-        outputFileName = "{}{}".format(orgDraw.orgParser.orgName, defaultOutputFile)
+        outputFileName = "{}{}".format(orgDraw.multiOrgParser.getOrgName(), defaultOutputFile)
     outputFileName = outputFileName.strip()
     modifiedName = outputFileName
 
@@ -477,7 +487,7 @@ class GenChartCommandline(TestCase):
         outputFileName = "{cwd}{slash}{dateStamp}_SantaClaraOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
         #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\Santa Clara Staff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
+        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\EngStaff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
         # main(['C:\SantaClara Staff - Remodel.xlsm'])
 
         startCmd = 'start {}'.format(outputFileName)
@@ -485,15 +495,24 @@ class GenChartCommandline(TestCase):
 
     def testSantaClaraFeatures(self):
         outputFileName = "{}{}SantaClaraOrgChart.feature.pptx".format(os.getcwd(),os.sep)
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Santa Clara\SantaClara Staff.xlsm', "-f", "-o {}".format(outputFileName)])
+        main(['Z:\Documents\HCP Anywhere\Org Charts\Insight Group\SibuEngStaff.xlsm', "-f", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
-    def testWaltham(self):
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Waltham\WalthamStaff.xlsm', "-t"])
 
-    def testBellevue(self):
-        #main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue SODOaff.xlsm'])
-        main(['Z:\Documents\HCP Anywhere\Org Charts and Hiring History\Bellevue\Bellevue Staff.xlsm'])
+    def testContent(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_ContentOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
+
+    def testSBelWal(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts and Hiring History\EngStaff.xlsm',  "-e", "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
 
     def testSIBU(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
@@ -502,10 +521,24 @@ class GenChartCommandline(TestCase):
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
-    def test(self):
+    def testSIBUSantaClaraBelWal(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        outputFileName = main(['Z:\doreper On My Mac\Desktop\SIBUEngStaff.xlsm', "-t", "-o {}".format(outputFileName)])
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', 'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts and Hiring History\EngStaff.xlsm','Z:\doreper On My Mac\Desktop\ContentHC\ContentStaff.xlsm',  "-e", "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
+    def testSIBUSantaClaraBel(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', 'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts and Hiring History\EngStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
+
+    def testSIBUSantaClaraBelTest(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\doreper On My Mac\Desktop\SIBUEngStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
