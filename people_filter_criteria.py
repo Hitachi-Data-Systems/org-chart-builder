@@ -57,6 +57,17 @@ class ManagerCriteria(FilterCriteria):
 
         return not personManager
 
+class ManagerEmptyCriteria(FilterCriteria):
+    def __init__(self):
+        FilterCriteria.__init__(self)
+
+    def matches(self, aPerson):
+        personManager = aPerson.getManagerFullName().lower().strip()
+
+        if personManager == "" or personManager == "tbd":
+            return True
+
+        return False
 
 class IsInternCriteria(FilterCriteria):
     def __init__(self, isIntern):

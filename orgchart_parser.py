@@ -6,7 +6,7 @@ import dateutil.parser
 
 from people_filter_criteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria, \
     FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria, LocationCriteria, IsManagerCriteria, \
-    IsProductManagerCriteria
+    IsProductManagerCriteria, ManagerEmptyCriteria
 
 from spreadsheet_parser import SpreadsheetParser
 
@@ -657,6 +657,10 @@ class PeopleFilter:
 
     def addManagerFilter(self, manager):
         self.filterList.append(ManagerCriteria(manager))
+        return self
+
+    def addManagerEmptyFilter(self):
+        self.filterList.append(ManagerEmptyCriteria())
         return self
 
     def addProductFilter(self, productName):

@@ -96,10 +96,12 @@ class OrgDraw:
                 chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {}".format(locationName, aFloor), self.slideLayout)
                 managerList = list(managerList)
                 managerList.sort()
+                doDraw = True
                 for aManager in managerList:
                     directReports = []
                     directReports.extend(self._getDirects(aManager, aLocation))
                     if not directReports:
+                        doDraw = False
                         continue
                     self.buildGroup(aManager.getFullName(), directReports, chartDrawer)
                     managersOnSlide += 1
@@ -111,12 +113,30 @@ class OrgDraw:
                         chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {} {}".format(locationName, aFloor, slideNameAddendum), self.slideLayout)
                         slideNameAddendum = "pt3"
 
-                chartDrawer.drawSlide()
+                # Keep track of whether this floor has any people so that we avoid spamming "WARNING" messages because
+                # a slide is being drawn that's empty
+                if doDraw:
+                    chartDrawer.drawSlide()
                 managersOnSlide = 0
 
-        peopleMissingManager = self._getDirects("")
-        if peopleMissingManager:
-            print "People missing manager: {}".format(pprint.pformat(peopleMissingManager))
+            emptyManagerPeople = (PeopleFilter()
+                                  .addManagerEmptyFilter()
+                                  .addIsTBHFilter(False)
+                                  .addLocationFilter(locationName)
+                                    # Someone's name might be entered in the spreadsheet so that their direct reports are drawn but the person
+                                    # could be assigned to a different org so their other information is blank. In this case, they aren't
+                                    # really missing a manager
+                                  .addIsManagerFilter(False))
+
+            peopleMissingManager = (self.multiOrgParser.getFilteredPeople(emptyManagerPeople))
+
+            if peopleMissingManager:
+                #Draw people who are missing a manager on their own slide
+                chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Missing Admin Manager".format(locationName), self.slideLayout)
+
+                self.buildGroup("Chuck Norris", peopleMissingManager, chartDrawer)
+                chartDrawer.drawSlide()
+
 
     def drawExpat(self):
         expats = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsExpatFilter())
@@ -482,7 +502,7 @@ if __name__ == "__main__":
 
 class GenChartCommandline(TestCase):
 
-    def testSantaClara(self):
+    def testConverged(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SantaClaraOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
@@ -506,6 +526,13 @@ class GenChartCommandline(TestCase):
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
+    def testContentSC(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_ContentOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\Documents\HCP Anywhere\Org Charts\Insight Group\SibuEngStaff.xlsm', 'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
+        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
 
     def testSBelWal(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
@@ -517,21 +544,21 @@ class GenChartCommandline(TestCase):
     def testSIBU(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testSIBUSantaClaraBelWal(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', 'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts and Hiring History\EngStaff.xlsm','Z:\doreper On My Mac\Desktop\ContentHC\ContentStaff.xlsm',  "-e", "-t", "-o {}".format(outputFileName)])
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm', 'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\EngStaff.xlsm','Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',  "-e", "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testSIBUSantaClaraBel(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_SIBUOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\SIBU Org Charts and Hiring History\SIBUEngStaff.xlsm', 'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts and Hiring History\EngStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm', 'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts and Hiring History\EngStaff.xlsm', "-e", "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
