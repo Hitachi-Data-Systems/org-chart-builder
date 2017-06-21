@@ -511,7 +511,7 @@ class GenChartCommandline(TestCase):
         outputFileName = "{cwd}{slash}{dateStamp}_Converged_OrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
         #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
-        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\EngStaff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
+        main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
         # main(['C:\SantaClara Staff - Remodel.xlsm'])
 
         startCmd = 'start {}'.format(outputFileName)
@@ -547,7 +547,7 @@ class GenChartCommandline(TestCase):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}ALLOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
-                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\EngStaff.xlsm',
+                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
                                'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
@@ -557,7 +557,7 @@ class GenChartCommandline(TestCase):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_Insight_Converged_OrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
-                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\EngStaff.xlsm',
+                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\ConvergedEngStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
         #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)

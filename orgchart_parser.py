@@ -160,9 +160,6 @@ class PeopleDataKeysHPP(PeopleDataKeys):
     NICK_NAME = "Name"
     #CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
 
-    def __init__(self):
-        PeopleDataKeys.__init__(self)
-
 class PersonRowWrapper:
     def __init__(self, spreadsheetParser, peopleDataKeys, aRow):
         self.spreadsheetParser = spreadsheetParser
@@ -530,13 +527,13 @@ class SingleOrgParser(OrgParser):
         if "hpp" in filename:
             self.peopleDataKeys = PeopleDataKeysHPP()
 
-        if "bellevue" in filename:
+        if "bellevue" in filename or "converged" in filename:
             self.peopleDataKeys = PeopleDataKeysBellevue()
 
         if "clara" in filename:
             self.peopleDataKeys = PeopleDataKeysSantaClara()
 
-        if "sibu" in filename:
+        if "sibu" in filename or "insight" in filename:
             self.peopleDataKeys = PeopleDataKeysSIBU()
 
         self.spreadsheetParser = SpreadsheetParser(workbookName, dataSheetName)
