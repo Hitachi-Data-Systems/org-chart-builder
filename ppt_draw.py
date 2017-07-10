@@ -181,9 +181,7 @@ class OrgDraw:
         chartDrawer.drawSlide()
 
     def drawCrossFunc(self):
-        crossFuncPeople = []
-
-        self.multiOrgParser.getCrossFuncPeople()
+        crossFuncPeople = self.multiOrgParser.getCrossFuncPeople()
 
         if not len(crossFuncPeople):
             return
