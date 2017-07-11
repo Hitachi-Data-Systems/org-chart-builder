@@ -449,9 +449,9 @@ class MultiOrgParser(OrgParser):
         return featureTeamSet
 
     def getFunctionSet(self, productName=None):
-        functionSet = []
+        functionSet = set()
         for orgSheet in self.orgSheets:
-            functionSet.extend(orgSheet.getFunctionSet(productName))
+            functionSet.update(orgSheet.getFunctionSet(productName))
         return functionSet
 
     def getLocationSet(self, productName=""):
