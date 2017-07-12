@@ -65,7 +65,29 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
     }
 
 
-class PeopleDataKeysWaltham(PeopleDataKeys):
+class PeopleDataKeysSIBU(PeopleDataKeys):
+    def __init__(self):
+        PeopleDataKeys.__init__(self)
+    NAME = "HR Name"
+    NICK_NAME = "Nickname"
+    REQ = "Requisition"
+    LEVEL = "Title"
+    TEAM_MODEL = {
+            "HVS" : "[Forecast: Q1:20; Q2:26; Q3:29; Q4:34] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
+            "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
+            "Lumada - System" : "[Forecast: Q1:7; Q2:6; Q3:43; Q4:110]",
+            "Lumada - Studio" : "[Forecast: Q1:7; Q2:10; Q3:43; Q4:110]",
+            "City Data Exchange" : "[Forecast: Q1:6; Q2:19; Q3:6; Q4:6]",
+            "Predictive Maintenance" : "[Forecast: Q1:5; Q2:17; Q3:22; Q4:27]",
+            "Optimized Factory" : "[Forecast: Q1:1; Q2:6; Q3:13; Q4:15]",
+        }
+
+    PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "technology", "tactical integration",
+                          "tactical integrations",  "lumada - system", "sc iiot", "bel iiot", "lumada platform", "pdm", "predictive maintenance",
+                          "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
+                          "cde", "denver", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - hci", "hci", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
+
+class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     FUNCTION = "Function"
