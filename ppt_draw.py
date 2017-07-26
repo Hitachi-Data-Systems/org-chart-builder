@@ -507,11 +507,7 @@ class GenChartCommandline(TestCase):
     def testConverged(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_Converged_OrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
-        #main(['C:\SantaClara Staff.xlsm', "-o {}".format(outputFileName)])
-        #main(['C:\SantaClara StaffRainier_Model.xlsm', '-f'])
         main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm', "-t","-e", "-o {}".format(outputFileName)])
-        # main(['C:\SantaClara Staff - Remodel.xlsm'])
-
         startCmd = 'start {}'.format(outputFileName)
         os.system(startCmd)
 
@@ -520,7 +516,6 @@ class GenChartCommandline(TestCase):
         outputFileName = "{cwd}{slash}{dateStamp}_ContentOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
-        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testInsightContent(self):
@@ -529,7 +524,6 @@ class GenChartCommandline(TestCase):
         outputFileName = main(['Z:\Documents\HCP Anywhere\Org Charts\Insight Group\SibuEngStaff.xlsm',
                                'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
-        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
 
@@ -538,7 +532,6 @@ class GenChartCommandline(TestCase):
         outputFileName = "{cwd}{slash}{dateStamp}_InsightOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
-        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testALLOrg(self):
@@ -548,14 +541,12 @@ class GenChartCommandline(TestCase):
                                'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
                                'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
-        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
-    def testSIBUSantaClaraBel(self):
+    def testSIBUInsightConverged(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_Insight_Converged_OrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
-                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\ConvergedEngStaff.xlsm',
+                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
-        #main(['C:\SIBUEngStaff.xlsm', "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
