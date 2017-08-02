@@ -543,7 +543,7 @@ class GenChartCommandline(TestCase):
                                "-e", "-t", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
-    def testSIBUInsightConverged(self):
+    def testInsightConverged(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_Insight_Converged_OrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',

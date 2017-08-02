@@ -92,7 +92,6 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
         PeopleDataKeys.__init__(self)
     FUNCTION = "Function"
     NAME = "HR Name"
-    NICK_NAME = "Name"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Sustaining" ]
     FLOORS = {
         "- Mobility": [
@@ -539,9 +538,7 @@ class SingleOrgParser(OrgParser):
 
         self.peopleDataKeys = PeopleDataKeys()
         filename = os.path.basename(workbookName).lower()
-        self.orgName = filename.split("Staff")[0].strip()
-
-
+        self.orgName = filename.split("staff")[0].strip()
 
         if "waltham" in filename or "content" in filename:
             self.peopleDataKeys = PeopleDataKeysWaltham()

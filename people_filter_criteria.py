@@ -5,7 +5,7 @@ class FilterCriteria:
     def __init__(self,):
         pass
 
-    def matchesCriteria(self, aPerson):
+    def matches(self, aPerson):
         return True
 
 class KeyMatchesCriteria(FilterCriteria):

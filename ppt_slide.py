@@ -93,7 +93,7 @@ class DrawChartSlide:
         effectiveDateRun.font.bold = False
 
     def addFooter(self, aSlide, footerString, leftEdge=0):
-        footerTextBox = aSlide.shapes.add_textbox(leftEdge, DrawChartSlide.FOOTER_TOP, Inches(0), Inches(0))
+        footerTextBox = aSlide.shapes.add_textbox(leftEdge, DrawChartSlide.FOOTER_TOP, Inches(1), Inches(1))
         footerTextFrame = footerTextBox.textframe
         p = footerTextFrame.add_paragraph()
         p.text = footerString
