@@ -275,12 +275,11 @@ class SingleOrgParser(OrgParser):
     def _getPerson(self, aRow):
         aPerson = PersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
         managerSet = self.getManagerSet()
-        nickNameStr = "{} {}".format(aPerson.getRawNickName(), aPerson.getLastName())
 
         if (aPerson.getRawName() in managerSet
             or aPerson.getRawNickName() in managerSet
             or aPerson.getFullName() in managerSet
-            or nickNameStr in managerSet):
+            or aPerson.getPreferredName() in managerSet):
             aPerson.setManager()
         return aPerson
 

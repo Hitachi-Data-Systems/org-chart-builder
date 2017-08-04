@@ -54,11 +54,11 @@ class OrgDraw:
 
         # Make sure we're adding all managers.
         # Could be a problem if a person has a manger that isn't entered as a row
-        for aManagerName in self.multiOrgParser.getManagerSet():
+        for aManagerNameStr in self.multiOrgParser.getManagerSet():
             for aManager in managerList:
-                aManagerFullName = aManager.getFullName(aManagerName)
+                aManagerFullName = aManager.getFullName(aManagerNameStr)
                 if aManager.getFullName() == aManagerFullName or aManager.getNormalizedRawName() == aManagerFullName:
-                    allManagerNames.remove(aManagerName)
+                    allManagerNames.remove(aManagerNameStr)
 
         if allManagerNames:
             print "WARNING: Managers not drawn because they are not entered as row: {}".format(pprint.pformat(allManagerNames))
@@ -101,7 +101,7 @@ class OrgDraw:
                     directReports.extend(self._getDirects(aManager, aLocation))
                     if not directReports:
                         continue
-                    self.buildGroup(aManager.getFullName(), directReports, chartDrawer)
+                    self.buildGroup(aManager.getPreferredName(), directReports, chartDrawer)
                     managersOnSlide += 1
 
                     # Split the slide into multiple parts if it's getting too crowded

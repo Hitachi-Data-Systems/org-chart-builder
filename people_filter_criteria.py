@@ -53,8 +53,7 @@ class ManagerCriteria(FilterCriteria):
                 return True
 
             if self.manager.getRawNickName():
-                nickNameStr = "{} {}".format(self.manager.getRawNickName(), self.manager.getLastName())
-                if (personManager == nickNameStr):
+                if personManager == self.manager.getPreferredName():
                     return True
             return False
 

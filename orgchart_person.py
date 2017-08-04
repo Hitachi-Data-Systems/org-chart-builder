@@ -61,6 +61,11 @@ class PersonRowWrapper:
     def getNormalizedRawName(self):
         return "{} {}".format(self.getFirstName(self.getRawName()), self.getLastName(self.getRawName()))
 
+    def getPreferredName(self):
+        if self.getRawNickName():
+            return "{} {}".format(self.getRawNickName(), self.getLastName())
+        return self.getFullName()
+
     def getRawNickName(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NICK_NAME).strip()
 
