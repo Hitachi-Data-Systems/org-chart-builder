@@ -49,10 +49,13 @@ class ManagerCriteria(FilterCriteria):
                 return True
             if self.manager.getRawName() and (personManager == self.manager.getRawName()):
                 return True
-            if self.manager.getRawNickName() and (personManager == self.manager.getRawNickName()):
-                return True
             if self.manager.getNormalizedRawName() and (personManager == self.manager.getNormalizedRawName()):
                 return True
+
+            if self.manager.getRawNickName():
+                nickNameStr = "{} {}".format(self.manager.getRawNickName(), self.manager.getLastName())
+                if (personManager == nickNameStr):
+                    return True
             return False
 
         return not personManager
