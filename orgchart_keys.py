@@ -4,8 +4,8 @@ class PeopleDataKeys:
         pass
 
     MANAGER = "Manager"
-    NAME = "Name"
-    NICK_NAME = NAME
+    NAME = "HR Name"
+    NICK_NAME = "Nickname"
     LEVEL = "Level"
     FUNCTION = "Function"
     PROJECT = "Project"
@@ -51,8 +51,6 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
 class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-    NAME = "HR Name"
-    NICK_NAME = "Nickname"
     REQ = "Requisition"
     LEVEL = "Title"
     TEAM_MODEL = {
@@ -74,7 +72,6 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     FUNCTION = "Function"
-    NAME = "HR Name"
     CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Sustaining" ]
     FLOORS = {
         "- Mobility": [
@@ -137,8 +134,6 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
 class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-    NAME = "HR Name"
-    NICK_NAME = "Nickname"
     REQ = "Requisition"
     LEVEL = "Title"
     TEAM_MODEL = {
@@ -160,6 +155,4 @@ class PeopleDataKeysHPP(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     FUNCTION = "Function"
-    NAME = "HR Name"
-    NICK_NAME = "Name"
     #CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]

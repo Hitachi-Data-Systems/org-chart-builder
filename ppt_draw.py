@@ -11,6 +11,7 @@ from orgchart_parser import MultiOrgParser, PeopleFilter
 import sys
 from pptx import Presentation
 import orgchart_parser
+from orgchart_person import SkeletonPerson
 from ppt_slide import DrawChartSlide, DrawChartSlideAdmin, DrawChartSlideTBH, DrawChartSlideExpatIntern, DrawChartSlidePM
 
 __author__ = 'David Oreper'
@@ -49,23 +50,26 @@ class OrgDraw:
         return directReports
 
     def drawAdmin(self):
-        managerList = self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsManagerFilter())
-        allManagerNames = list(self.multiOrgParser.getManagerSet())
 
-        # Make sure we're adding all managers.
-        # Could be a problem if a person has a manger that isn't entered as a row
-        for aManagerNameStr in self.multiOrgParser.getManagerSet():
-            for aManager in managerList:
-                aManagerFullName = aManager.getFullName(aManagerNameStr)
-                if aManager.getFullName() == aManagerFullName or aManager.getNormalizedRawName() == aManagerFullName:
-                    allManagerNames.remove(aManagerNameStr)
+        # Populate the manager list with managers who are entered in the spreadsheet so it's easier to match them
+        # to the appropriate floor and identify them as 1 person even if they are entered in different ways in the
+        # Manager column (Ben/Benjamin)
+        managerSet = set(self.multiOrgParser.getFilteredPeople(PeopleFilter().addIsManagerFilter()))
 
-        if allManagerNames:
-            print "WARNING: Managers not drawn because they are not entered as row: {}".format(pprint.pformat(allManagerNames))
+        # Get all the entries in the manager column but remove entries that start with "_" as they are excluded intentionally
+        allManagers = set([SkeletonPerson(aManagerName) for aManagerName
+                           in self.multiOrgParser.getManagerSet()
+                           if (not aManagerName.startswith("_"))
+                                and "TBD" not in aManagerName])
+
+        print "Info: Managers not entered as rows: {}".format(allManagers.difference(managerSet))
+
+        mergedManagerList = managerSet.union(allManagers)
+        print "Managers: {}".format(mergedManagerList)
 
         # A manager can have reports on more than one floor
         managersByFloor = {}
-        for aManager in managerList:
+        for aManager in mergedManagerList:
             floors = aManager.getFloors()
             for floor in floors:
                 if not floor in managersByFloor:
@@ -450,16 +454,26 @@ def main(argv):
 
     orgDraw = OrgDraw(workbooks, options.sheetName, options.draftMode)
 
+    print "Creating product slides"
     orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
+
+    print "Creating Cross Functional slides"
     orgDraw.drawCrossFunc()
     if not options.featureTeam:
+        print "Creating Expat slide"
         orgDraw.drawExpat()
+
+        print "Creating Intern slide"
         orgDraw.drawIntern()
+
+        print "Creating PM slide"
         orgDraw.drawProductManger()
 
     if options.tbh:
+        print "Creating TBH slide"
         orgDraw.drawTBH()
 
+    print "Creating Admin slide"
     orgDraw.drawAdmin()
 
 

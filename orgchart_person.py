@@ -3,12 +3,138 @@ import dateutil.parser
 
 __author__ = 'David Oreper'
 
-class PersonRowWrapper:
+class SkeletonPerson:
+    def __init__(self, fullName):
+        self.fullName = fullName
+
+
+    def getFirstName(self, aName=None):
+            if not aName:
+                #if HRName  is blank but nick name is populated - use that
+                aName = self.getRawName() or self.getRawNickName()
+
+            if "," in aName:
+                return " ".join(aName.split(",")[1:]).strip()
+            return aName.split(" ")[0].strip()
+
+    def getLastName(self, aName=None):
+        if not aName:
+            #if HR Name is blank but nick name is populated - use that
+            aName = self.getRawName() or self.getRawNickName()
+
+        if "," in aName:
+            return aName.split(",")[0].strip()
+        return " ".join(aName.split(" ")[1:]).strip()
+
+    def getFullName(self, fullName=None):
+        return "{} {}".format(self.getFirstName(fullName), self.getLastName(fullName)).strip()
+
+    def getRawName(self):
+        return self.fullName
+
+    def getNormalizedRawName(self):
+        return "{} {}".format(self.getFirstName(self.getRawName()), self.getLastName(self.getRawName()))
+
+    def getPreferredName(self):
+        if self.getRawNickName():
+            return "{} {}".format(self.getRawNickName(), self.getLastName())
+        return self.getFullName()
+
+    def getRawNickName(self):
+        return self.getFirstName()
+
+    def __str__(self):
+        return self.getPreferredName()
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __lt__(self, other):
+
+        if self.isUnfunded() and not other.isUnfunded():
+            return False
+        elif not self.isUnfunded() and other.isUnfunded():
+            return True
+
+        # # Uncomment if we want to sort interns to the bottom of each list...currently, we put interns on own slide
+        # if self.isIntern() and not other.isIntern():
+        #     return False
+        # elif not self.isIntern() and other.isIntern():
+        #     return True
+
+        if self.isTBH() and not other.isTBH():
+            return False
+        elif not self.isTBH() and other.isTBH():
+            return True
+
+        return self.getFullName() < other.getFullName()
+
+    def __gt__(self, other):
+        return not self.__lt__(other)
+
+    def __eq__(self, other):
+        """
+        Compare entries in the spreadsheet based on their fullname. If the entry is 'TBH', assume it's unique.
+
+        :param other:
+        :return:
+        """
+        if not isinstance(other, SkeletonPerson):
+            return False
+
+        # All TBHs have the same name so we assume each one is unique or they would all
+        # get merged into 1
+        if other.isTBH():
+            return False
+
+        if self.getFullName() == other.getFullName():
+            return True
+
+        if self.getFullName() and (other.getFullName() == self.getFullName()):
+            return True
+        if self.getRawName() and (other.getRawName == self.getRawName()):
+            return True
+        if self.getNormalizedRawName() and (other.getNormalizedRawName == self.getNormalizedRawName()):
+            return True
+
+        if self.getRawNickName():
+            if other.getRawNickName() == self.getPreferredName():
+                return True
+        return False
+
+    def getFloors(self):
+        #TODO
+        return [""]
+
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.getFullName())
+
+    def isTBH(self):
+        if (self.getFullName().lower().startswith("tbh")
+            or self.getFullName().lower().startswith("tbd")):
+            return True
+        return False
+
+    def isUnfunded(self):
+        if (self.getFullName().lower().startswith("unfunded")
+            or self.getFullName().lower().startswith("unfunded")):
+            return True
+        return False
+
+
+
+class PersonRowWrapper(SkeletonPerson):
     def __init__(self, spreadsheetParser, peopleDataKeys, aRow):
+
         self.spreadsheetParser = spreadsheetParser
         self.peopleDataKeys = peopleDataKeys
         self.aRow = aRow
         self.manager = False
+        SkeletonPerson.__init__(self, spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NAME))
 
     def isConsultant(self):
         """
@@ -83,18 +209,6 @@ class PersonRowWrapper:
 
     def isLead(self):
         return self.spreadsheetParser.getColByName(self.aRow, self.peopleDataKeys.NAME).style.font.bold
-
-    def isTBH(self):
-        if (self.getFullName().lower().startswith("tbh")
-            or self.getFullName().lower().startswith("tbd")):
-            return True
-        return False
-
-    def isUnfunded(self):
-        if (self.getFullName().lower().startswith("unfunded")
-            or self.getFullName().lower().startswith("unfunded")):
-            return True
-        return False
 
     def isProductManager(self):
         return self.getFunction().lower() in ["pm", "product manager", "product management"]
@@ -173,50 +287,3 @@ class PersonRowWrapper:
 
     def __repr__(self):
         return self.__str__()
-
-    def __lt__(self, other):
-
-        if self.isUnfunded() and not other.isUnfunded():
-            return False
-        elif not self.isUnfunded() and other.isUnfunded():
-            return True
-
-        # # Uncomment if we want to sort interns to the bottom of each list...currently, we put interns on own slide
-        # if self.isIntern() and not other.isIntern():
-        #     return False
-        # elif not self.isIntern() and other.isIntern():
-        #     return True
-
-        if self.isTBH() and not other.isTBH():
-            return False
-        elif not self.isTBH() and other.isTBH():
-            return True
-
-        return self.getFullName() < other.getFullName()
-
-    def __gt__(self, other):
-        return not self.__lt__(other)
-
-    def __eq__(self, other):
-        """
-        Compare entries in the spreadsheet based on their fullname. If the entry is 'TBH', assume it's unique.
-
-        :param other:
-        :return:
-        """
-        if not isinstance(other, PersonRowWrapper):
-            return False
-
-        # All TBHs have the same name so we assume each one is unique or they would all
-        # get merged into 1
-        if other.isTBH():
-            return False
-
-        if self.getFullName() == other.getFullName():
-            return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash(self.getFullName())
