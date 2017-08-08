@@ -62,7 +62,7 @@ class OrgDraw:
                            if (not aManagerName.startswith("_"))
                                 and "TBD" not in aManagerName])
 
-        print "Info: Managers not entered as rows: {}".format(allManagers.difference(managerSet))
+        print "Info: Managers not entered as rows: {}".format(managerSet.difference(allManagers))
 
         mergedManagerList = managerSet.union(allManagers)
         print "Managers: {}".format(mergedManagerList)
@@ -454,24 +454,24 @@ def main(argv):
 
     orgDraw = OrgDraw(workbooks, options.sheetName, options.draftMode)
 
-    print "Creating product slides"
-    orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
-
-    print "Creating Cross Functional slides"
-    orgDraw.drawCrossFunc()
-    if not options.featureTeam:
-        print "Creating Expat slide"
-        orgDraw.drawExpat()
-
-        print "Creating Intern slide"
-        orgDraw.drawIntern()
-
-        print "Creating PM slide"
-        orgDraw.drawProductManger()
-
-    if options.tbh:
-        print "Creating TBH slide"
-        orgDraw.drawTBH()
+    # print "Creating product slides"
+    # orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
+    #
+    # print "Creating Cross Functional slides"
+    # orgDraw.drawCrossFunc()
+    # if not options.featureTeam:
+    #     print "Creating Expat slide"
+    #     orgDraw.drawExpat()
+    #
+    #     print "Creating Intern slide"
+    #     orgDraw.drawIntern()
+    #
+    #     print "Creating PM slide"
+    #     orgDraw.drawProductManger()
+    #
+    # if options.tbh:
+    #     print "Creating TBH slide"
+    #     orgDraw.drawTBH()
 
     print "Creating Admin slide"
     orgDraw.drawAdmin()

@@ -84,6 +84,8 @@ class SkeletonPerson:
 
         # All TBHs have the same name so we assume each one is unique or they would all
         # get merged into 1
+
+        print "TODO: Checking: {} and {}".format(self.getFullName(), other.getFullName())
         if other.isTBH():
             return False
 
@@ -98,12 +100,14 @@ class SkeletonPerson:
             return True
 
         if self.getRawNickName():
-            if other.getRawNickName() == self.getPreferredName():
+            if other.getPreferredName() == self.getPreferredName():
                 return True
+
+        print "Returned false"
         return False
 
     def getFloors(self):
-        #TODO
+        #TODO - Either get rid of floors concept or find a way to map skeleton person to a floor
         return [""]
 
 
@@ -111,7 +115,10 @@ class SkeletonPerson:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.getFullName())
+        print " #TODO hash : {} - {}".format(hash(self.getLastName()), self.getLastName())
+        # Use the last name for hash so we can further compare collisions with the __eq__ algorithm and identify
+        # people as the same if their fullname is different from their preferred name
+        return hash(self.getLastName())
 
     def isTBH(self):
         if (self.getFullName().lower().startswith("tbh")

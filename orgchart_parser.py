@@ -59,10 +59,14 @@ class OrgParser:
         raise NotImplementedError
 
 class MultiOrgParser(OrgParser):
+
+    ManagerSet = set()
+
     def __init__(self, workbookNames, dataSheetName):
         self.orgSheets = []
         for aWorkbook in workbookNames:
             self.orgSheets.append(SingleOrgParser(aWorkbook, dataSheetName))
+        MultiOrgParser.ManagerSet = self.getManagerSet()
 
     def getOrgName(self):
         # If there is only 1 org sheet, use that name
@@ -72,10 +76,10 @@ class MultiOrgParser(OrgParser):
         return ""
 
     def getManagerSet(self):
-        managerSet = set()
-        for orgSheet in self.orgSheets:
-            managerSet.update(orgSheet.getManagerSet())
-        return managerSet
+        if not MultiOrgParser.ManagerSet:
+            for orgSheet in self.orgSheets:
+                MultiOrgParser.ManagerSet.update(orgSheet.getManagerSet())
+        return MultiOrgParser.ManagerSet
 
     def getProductSet(self):
         productSet = set()
@@ -274,7 +278,7 @@ class SingleOrgParser(OrgParser):
 
     def _getPerson(self, aRow):
         aPerson = PersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
-        managerSet = self.getManagerSet()
+        managerSet = MultiOrgParser.ManagerSet
 
         if (aPerson.getRawName() in managerSet
             or aPerson.getRawNickName() in managerSet
