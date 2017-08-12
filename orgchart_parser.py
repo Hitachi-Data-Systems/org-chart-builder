@@ -185,6 +185,7 @@ class SingleOrgParser(OrgParser):
         # whether the person is a manager
         self.managerSet = set()
         self.managerSet = self.getManagerSet()
+        self.peopleCache = []
 
     def getOrgName(self):
         return self.orgName
@@ -288,10 +289,18 @@ class SingleOrgParser(OrgParser):
         return aPerson
 
     def _getPeople(self):
+        if not self.peopleCache:
+            self._populatePeopleCache()
 
+        if self.peopleCache:
+            for aPerson in self.peopleCache:
+                yield aPerson
+
+    def _populatePeopleCache(self):
         for aRow in self.spreadsheetParser.dataRows():
             aPerson = self._getPerson(aRow)
-            yield aPerson
+            self.peopleCache.append(aPerson)
+
 
 class PeopleFilter:
     def __init__(self):

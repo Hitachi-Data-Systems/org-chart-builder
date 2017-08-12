@@ -79,14 +79,16 @@ class SkeletonPerson:
         :param other:
         :return:
         """
+        #print "TODO: Checking {} || {}".format(self.getFullName(), other.getFullName())
         if not isinstance(other, SkeletonPerson):
+            #print "TODO : Different instances"
             return False
+
 
         # All TBHs have the same name so we assume each one is unique or they would all
         # get merged into 1
-
-        print "TODO: Checking: {} and {}".format(self.getFullName(), other.getFullName())
         if other.isTBH():
+            #print "TODO: other is TBH"
             return False
 
         if self.getFullName() == other.getFullName():
@@ -103,7 +105,7 @@ class SkeletonPerson:
             if other.getPreferredName() == self.getPreferredName():
                 return True
 
-        print "Returned false"
+        #print "TODO: NO MATCH"
         return False
 
     def getFloors(self):
@@ -115,9 +117,9 @@ class SkeletonPerson:
         return not self.__eq__(other)
 
     def __hash__(self):
-        print " #TODO hash : {} - {}".format(hash(self.getLastName()), self.getLastName())
         # Use the last name for hash so we can further compare collisions with the __eq__ algorithm and identify
         # people as the same if their fullname is different from their preferred name
+        #print "TODO: HASH: {} - {}".format(self.getLastName(), hash(self.getLastName()))
         return hash(self.getLastName())
 
     def isTBH(self):
@@ -252,10 +254,7 @@ class PersonRowWrapper(SkeletonPerson):
         floors = list()
         for aFloor, managerNames in self.peopleDataKeys.FLOORS.iteritems():
             for aManagerName in managerNames:
-                aFullName = self.getFullName(aManagerName)
-                if (self.getFullName() == aFullName
-                or (self.getRawName() == aFullName)
-                or (self.getNormalizedRawName() == aFullName)):
+                if SkeletonPerson(aManagerName) == self:
                     floors.append(aFloor)
         if not floors:
             floors.append("")

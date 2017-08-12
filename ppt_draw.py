@@ -44,7 +44,8 @@ class OrgDraw:
         directReports = []
         peopleFilter.addManagerFilter(aManager)
         peopleFilter.addIsTBHFilter(False)
-        peopleFilter.addLocationFilter(location)
+        if location:
+            peopleFilter.addLocationFilter(location)
         directReports.extend(self.multiOrgParser.getFilteredPeople(peopleFilter))
 
         return directReports
@@ -64,8 +65,13 @@ class OrgDraw:
 
         print "Info: Managers not entered as rows: {}".format(managerSet.difference(allManagers))
 
+        # Prefer Person type over SkeletonPerson type as it is more full featured - floors work better
         mergedManagerList = managerSet.union(allManagers)
-        print "Managers: {}".format(mergedManagerList)
+        pprint.pprint("Managers: {}".format(mergedManagerList))
+
+        managerEmployeeDict = {}
+        for aManager in mergedManagerList:
+            managerEmployeeDict[aManager] = self._getDirects(aManager)
 
         # A manager can have reports on more than one floor
         managersByFloor = {}
@@ -93,7 +99,8 @@ class OrgDraw:
 
             maxManagersPerSlide = 7
             managersOnSlide = 0
-            slideNameAddendum = "pt2"
+            partNum = 2
+            slideNameAddendum = "pt {}".format(partNum)
 
             for aFloor in sortedFloors:
                 managerList = managersByFloor[aFloor]
@@ -102,7 +109,18 @@ class OrgDraw:
                 managerList.sort()
                 for aManager in managerList:
                     directReports = []
-                    directReports.extend(self._getDirects(aManager, aLocation))
+
+
+                    for aPerson in managerEmployeeDict[aManager][:]:
+                        if aPerson.getLocation() == aLocation:
+                            directReports.append(aPerson)
+                            #print "TODO: Removing - {}".format(aPerson)
+                            managerEmployeeDict[aManager].remove(aPerson)
+                            #print "TODO : Removed"
+
+                    #directReports.extend([aPerson for aPerson in managerEmployeeDict[aManager] if aPerson.getLocation() == aLocation])
+
+                    # directReports.extend(self._getDirects(aManager, aLocation))
                     if not directReports:
                         continue
                     self.buildGroup(aManager.getPreferredName(), directReports, chartDrawer)
@@ -112,8 +130,10 @@ class OrgDraw:
                     if managersOnSlide >= maxManagersPerSlide:
                         managersOnSlide = 0
                         chartDrawer.drawSlide()
-                        chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {} {}".format(locationName, aFloor, slideNameAddendum), self.slideLayout)
-                        slideNameAddendum = "pt3"
+                        chartDrawer = DrawChartSlideAdmin(self.presentation, "{} Admin {}{}".format(locationName, aFloor, slideNameAddendum), self.slideLayout)
+                        partNum += 1
+                        slideNameAddendum = "pt {}".format(partNum)
+
 
                 # Keep track of whether this floor has any people so that we avoid spamming "WARNING" messages because
                 # a slide is being drawn that's empty
@@ -121,16 +141,12 @@ class OrgDraw:
                     chartDrawer.drawSlide()
                 managersOnSlide = 0
 
-            emptyManagerPeople = (PeopleFilter()
+            emptyManagerPeopleFilter = (PeopleFilter()
                                   .addManagerEmptyFilter()
                                   .addIsTBHFilter(False)
-                                  .addLocationFilter(locationName)
-                                    # Someone's name might be entered in the spreadsheet so that their direct reports are drawn but the person
-                                    # could be assigned to a different org so their other information is blank. In this case, they aren't
-                                    # really missing a manager
-                                  .addIsManagerFilter(False))
+                                  .addLocationFilter(locationName))
 
-            peopleMissingManager = (self.multiOrgParser.getFilteredPeople(emptyManagerPeople))
+            peopleMissingManager = (self.multiOrgParser.getFilteredPeople(emptyManagerPeopleFilter))
 
             if peopleMissingManager:
                 #Draw people who are missing a manager on their own slide
@@ -511,7 +527,6 @@ if __name__ == "__main__":
 
 
 class GenChartCommandline(TestCase):
-
 
     def testSantaClaraFeatures(self):
         outputFileName = "{}{}SantaClaraOrgChart.feature.pptx".format(os.getcwd(),os.sep)

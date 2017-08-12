@@ -84,14 +84,12 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
             "Van Thong, Adrien",
         ],
 
-        "- Content Part 1": [
+
+        "- Content": [
             "Boba, Andrew",
             "Bronner, Mark",
             "Burnham, John",
             "Chestna, Wayne",
-        ],
-
-        "- Content Part 2": [
             "Lee, Jonathan",
             "Shea, Kevin",
         ],
@@ -100,12 +98,13 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
             "Hartford, Joe",
             "Liang, Candy",
         ],
+
         "- HPP": [
             "Wesley, Joe",
             "Moore, Jim",
         ],
-	"- HDID": [
-	    "Agashe, Sujata",
+        "- HDID": [
+            "Agashe, Sujata",
             "Caswell, Paul",
             "Chappell, Simon",
             "Gothoskar, Chandrashekhar",
@@ -115,7 +114,7 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
             "Pendlebury, Ian",
             "Pfaff, Florian",
             "Sinkar, Milind",
-	],
+        ],
     }
 
     TEAM_MODEL = {
@@ -128,7 +127,7 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
 
     # names should be lower case here
     PRODUCT_SORT_ORDER = ["aspen", "ensemble", "hcp-rhino", "hcp-india", "hcp-aw", "aw-japan","hpp", "hpp-india", "hdid-uk", "hdid-waltham", "hdid-germany", "hdid-pune", "future funding"]
-    FLOOR_SORT_ORDER = ["- ensemble", "- content part 1", "- content part 2", "- mobility", "- hpp" ]
+    FLOOR_SORT_ORDER = ["- ensemble", "- content", "- mobility", "- hpp" ]
 
 
 class PeopleDataKeysSIBU(PeopleDataKeys):
