@@ -67,7 +67,7 @@ class OrgDraw:
 
         # Prefer Person type over SkeletonPerson type as it is more full featured - floors work better
         mergedManagerList = managerSet.union(allManagers)
-        pprint.pprint("Managers: {}".format(mergedManagerList))
+        #pprint.pprint("Managers: {}".format(mergedManagerList))
 
         managerEmployeeDict = {}
         for aManager in mergedManagerList:
@@ -255,10 +255,17 @@ class OrgDraw:
         teamModelText = None
 
         locations = [""]
-        if drawLocations:
-            locations = self.multiOrgParser.getLocationSet(productName)
 
-        for aLocation in locations:
+        # If draw locations has been set (could still be an empty list) then break the chart up by locations.
+        # if locations is set and isn't an empty list, only show the locations specified.
+        if drawLocations is not None:
+            locations = self.multiOrgParser.getLocationSet(productName)
+            for drawLocation in drawLocations:
+                if drawLocation not in locations:
+                    raise ValueError("{} is not found in available locations: {}".format(drawLocations, locations))
+
+
+        for aLocation in drawLocations or locations:
             locationName = aLocation.strip() or self.multiOrgParser.getOrgName()
 
             for aFeatureTeam in featureTeamList:
@@ -289,7 +296,7 @@ class OrgDraw:
                     peopleFilter = PeopleFilter()
                     peopleFilter.addProductFilter(productName)
                     peopleFilter.addFunctionFilter(aFunction)
-                    if drawLocations:
+                    if drawLocations is not None:
                         peopleFilter.addLocationFilter(aLocation)
 
                     if drawFeatureTeams:
@@ -406,6 +413,7 @@ class OrgDraw:
 
 
 def main(argv):
+    print ">./{}.py {}".format(__name__," ".join(argv))
     userDir = os.environ.get("USERPROFILE") or os.environ.get("HOME")
     defaultSheetName = "PeopleData"
     defaultDir = os.path.join(userDir, "Documents/HCP Anywhere/Org Charts and Hiring History")
@@ -437,7 +445,7 @@ def main(argv):
 
     parser.add_argument("-o", "--outputFile", type=str, default=None, help="output file")
     parser.add_argument("-f", "--featureTeam", action="store_true", default=False, help="Show products by feature team")
-    parser.add_argument("-l", "--location", action="store_true", default=False, help="Show products by location")
+    parser.add_argument("-l", "--location", nargs="*", help="Show products by location")
     parser.add_argument("-t", "--tbh", action="store_true", default=False, help="Add a TBH slide")
     parser.add_argument("-e", "--expatsInTeam", action="store_true", default=False, help="Include expats in Product team slide")
     parser.add_argument("--draftMode", type=bool, default=False,
@@ -470,28 +478,29 @@ def main(argv):
 
     orgDraw = OrgDraw(workbooks, options.sheetName, options.draftMode)
 
-    # print "Creating product slides"
-    # orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
-    #
-    # print "Creating Cross Functional slides"
-    # orgDraw.drawCrossFunc()
-    # if not options.featureTeam:
-    #     print "Creating Expat slide"
-    #     orgDraw.drawExpat()
-    #
-    #     print "Creating Intern slide"
-    #     orgDraw.drawIntern()
-    #
-    #     print "Creating PM slide"
-    #     orgDraw.drawProductManger()
-    #
-    # if options.tbh:
-    #     print "Creating TBH slide"
-    #     orgDraw.drawTBH()
+    print "Creating product slides"
+
+    options.location = [aLocation.strip() for aLocation in options.location]
+    orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
+
+    print "Creating Cross Functional slides"
+    orgDraw.drawCrossFunc()
+    if not options.featureTeam:
+        print "Creating Expat slide"
+        orgDraw.drawExpat()
+
+        print "Creating Intern slide"
+        orgDraw.drawIntern()
+
+        print "Creating PM slide"
+        orgDraw.drawProductManger()
+
+    if options.tbh:
+        print "Creating TBH slide"
+        orgDraw.drawTBH()
 
     print "Creating Admin slide"
     orgDraw.drawAdmin()
-
 
     outputFileName = options.outputFile
     if not outputFileName:
@@ -570,6 +579,15 @@ class GenChartCommandline(TestCase):
                                'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
                                'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
+    def testWalthamUKOrg(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}ALLOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
+                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
+                               'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
+                               "-e", "-t", "-l", "Waltham", "UK", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testInsightConverged(self):

@@ -86,7 +86,7 @@ class DrawChartSlide:
         effectiveDateRun.text = "\rEffective {} {} {}".format(month, ordinalDay, modelText)
 
         if self.location:
-            effectiveDateRun.text = "\r{} - {}".format(self.location, effectiveDateRun.text)
+            effectiveDateRun.text = "\r{} {}".format(self.location, effectiveDateRun.text)
 
         effectiveDateRun.font.size = Pt(11)
         effectiveDateRun.font.italic = True
