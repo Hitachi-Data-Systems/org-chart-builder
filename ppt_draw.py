@@ -480,7 +480,8 @@ def main(argv):
 
     print "Creating product slides"
 
-    options.location = [aLocation.strip() for aLocation in options.location]
+    if options.location:
+        options.location = [aLocation.strip() for aLocation in options.location]
     orgDraw.drawAllProducts(options.featureTeam, options.location, options.expatsInTeam)
 
     print "Creating Cross Functional slides"
@@ -583,11 +584,20 @@ class GenChartCommandline(TestCase):
 
     def testWalthamUKOrg(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
-        outputFileName = "{cwd}{slash}{dateStamp}ALLOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = "{cwd}{slash}{dateStamp}WalthamUKOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
                                'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
                                'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
                                "-e", "-t", "-l", "Waltham", "UK", "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
+    def testSantaClaraOrg(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}SantaClaraOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
+                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
+                               'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
+                               "-e", "-t", "-l", "Santa Clara", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testInsightConverged(self):

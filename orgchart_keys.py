@@ -64,7 +64,7 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
         }
 
     PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "technology", "tactical integration",
-                          "tactical integrations",  "lumada - system", "sc iiot", "bel iiot", "lumada platform", "pdm", "predictive maintenance",
+                          "tactical integrations", "lumada - system", "sc iiot", "set", "bel iiot", "lumada platform", "pdm", "predictive maintenance",
                           "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
                           "cde", "denver", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - hci", "hci", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
 
