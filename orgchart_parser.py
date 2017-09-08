@@ -147,7 +147,7 @@ class MultiOrgParser(OrgParser):
     def getCrossFuncTeams(self):
         crossFuncTeams = set()
         for orgSheet in self.orgSheets:
-            crossFuncTeams.update(orgSheet.getCrossFuncTeam())
+            crossFuncTeams.add(orgSheet.getCrossFuncTeam())
         return crossFuncTeams
 
 

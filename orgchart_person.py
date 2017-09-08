@@ -123,8 +123,8 @@ class SkeletonPerson:
         return hash(self.getLastName())
 
     def isTBH(self):
-        if (self.getFullName().lower().startswith("tbh")
-            or self.getFullName().lower().startswith("tbd")):
+        if (self.getRawName().lower().startswith("tbh")
+            or self.getRawName().lower().startswith("tbd")):
             return True
         return False
 

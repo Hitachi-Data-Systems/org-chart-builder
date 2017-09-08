@@ -229,8 +229,9 @@ class OrgDraw:
         productList = list(set([aPerson.getProduct() for aPerson in people]))
 
         for aCrossFuncTeam in self.multiOrgParser.getCrossFuncTeams():
-            if aCrossFuncTeam in productList:
-                productList.remove(aCrossFuncTeam)
+            for aProductName in productList[:]:
+                if aProductName.lower() == aCrossFuncTeam.lower():
+                    productList.remove(aProductName)
             productList.sort(cmp=self._sortByProduct)
 
         for aProductName in productList:
@@ -346,10 +347,10 @@ class OrgDraw:
             # chartDrawer.drawSlide()
 
     def _sortByFunc(self, a, b):
-        funcOrder = ["lead", "leadership", "head coach", "product management", "pm", "po", "product owner", "product owner/qa", "technology", "ta", "technology architect", "tech", "sw architecture", "dev",
+        funcOrder = ["lead", "leadership", "head coach", "product management", "product manager", "pm", "po", "product owner", "product owner/qa", "technology", "ta", "technology architect", "tech", "sw architecture", "dev",
                      "development", "development (connectors)", "qa", "quality assurance", "stress",
                      "characterization", "auto", "aut", "automation", "sustaining", "solutions and sustaining",
-                     "ui", "ux", "ui/ux", "inf", "infrastructure", "devops", "cross functional", "cross", "doc",
+                     "ui", "ux", "ui/ux", "user experience", "inf", "infrastructure", "devops", "cross functional", "cross", "doc",
                      "documentation"]
 
         if a.lower() in funcOrder:
@@ -579,6 +580,7 @@ class GenChartCommandline(TestCase):
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
                                'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
                                'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
+                               'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Solutions\SolutionsEngStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
@@ -605,5 +607,12 @@ class GenChartCommandline(TestCase):
         outputFileName = "{cwd}{slash}{dateStamp}_Insight_Converged_OrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
                                'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
+                               "-e", "-t", "-o {}".format(outputFileName)])
+        os.system("start " + outputFileName)
+
+    def testSolutions(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        outputFileName = "{cwd}{slash}{dateStamp}_Insight_Converged_OrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
+        outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Solutions\SolutionsEngStaff.xlsm',
                                "-e", "-t", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)

@@ -20,8 +20,8 @@ class PeopleDataKeys:
     LOCATION = "Location"
     START_DATE = "Start Date"
 
-    CROSS_FUNCTIONS = ["admin", "inf", "infrastructure"]
-    CROSS_FUNCT_TEAM = "Cross"
+    CROSS_FUNCTIONS = ["admin", "admin operations", "devops","inf", "infrastructure", "cross functional", "customer success", "technology",]
+    CROSS_FUNCT_TEAM = "cross"
     FLOORS = {}
     TEAM_MODEL = {}
     PRODUCT_SORT_ORDER = []
@@ -31,7 +31,7 @@ class PeopleDataKeysBellevue(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
 
-    CROSS_FUNCTIONS = ["technology", "admin", "inf", "infrastructure", "cross functional"]
+    # CROSS_FUNCTIONS = ["technology", "admin", "inf", "infrastructure", "cross functional"]
 
 class PeopleDataKeysSantaClara(PeopleDataKeys):
     def __init__(self):
@@ -72,7 +72,7 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     FUNCTION = "Function"
-    CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Sustaining" ]
+    # CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Sustaining" ]
     FLOORS = {
         "- Mobility": [
             "Anderson, Vic",

@@ -19,6 +19,15 @@ class ColorPicker:
                        (RGBColor(226, 241, 246), RGBColor(65, 151, 171)),
                        (RGBColor(253, 238, 226), RGBColor(235, 128, 35))]
 
+        # self.colors = [(RGBColor(170, 99, 57), RGBColor(217, 130, 79)),
+        #                (RGBColor(170, 127, 57), RGBColor(255, 196, 101)),
+        #                (RGBColor(198, 182, 86), RGBColor(241, 222, 107)),
+        #                (RGBColor(74, 121, 155), RGBColor(98, 155, 195)),
+        #                (RGBColor(70, 159, 132), RGBColor(94, 198, 167)),
+        #                (RGBColor(198, 105, 86), RGBColor(241, 130, 107)),
+        #                (RGBColor(253, 238, 226), RGBColor(235, 128, 35))]
+
+
     def getBackgroundColor(self):
         colorIndex = self.index % len(self.colors)
         return self.colors[colorIndex][0]

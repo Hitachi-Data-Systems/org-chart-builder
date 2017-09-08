@@ -293,9 +293,12 @@ class PeopleGroup(object):
 
         firstName = aPerson.getFirstName()
         lastName = aPerson.getLastName()
-        if aPerson.isTBH() and ("(" in firstName):
-            lastName = "(" + "(".join(firstName.split("(")[1:])
-            firstName = firstName.split("(")[0]
+        if aPerson.isTBH():
+            tbhParts = aPerson.getRawName().split("(")
+            firstName = tbhParts[0]
+            lastName = ""
+            if len(tbhParts) > 1:
+                lastName = "(" + tbhParts[1]
 
         title = self._getTitle(aPerson)
 
