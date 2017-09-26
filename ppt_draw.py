@@ -27,7 +27,7 @@ class OrgDraw:
         self.presentation = Presentation('HDSPPTTemplate.pptx')
         self.presentation.slide_height = DrawChartSlide.MAX_HEIGHT_INCHES
         self.presentation.slide_width = DrawChartSlide.MAX_WIDTH_INCHES
-        self.slideLayout = self.presentation.slide_layouts[4]
+        self.slideLayout = self.presentation.slide_layouts[8]
         self.multiOrgParser = MultiOrgParser(workbookPaths, sheetName)
         self.draftMode = draftMode
 
@@ -590,7 +590,7 @@ class GenChartCommandline(TestCase):
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
                                'Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Converged\ConvergedEngStaff.xlsm',
                                'Z:\Documents\HCP Anywhere\Org Charts\Content\ContentStaff.xlsm',
-                               "-e", "-t", "-l", "Waltham", "UK", "-o {}".format(outputFileName)])
+                               "-e", "-t", "-l", "Santa Clara", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testSantaClaraOrg(self):

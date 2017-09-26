@@ -66,56 +66,56 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
     PRODUCT_SORT_ORDER = ["hvs", "hvs em", "vmp", "hvp", "smart city technology", "technology", "tactical integration",
                           "tactical integrations", "lumada - system", "sc iiot", "set", "bel iiot", "lumada platform", "pdm", "predictive maintenance",
                           "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
-                          "cde", "denver", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - hci", "hci", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
+                          "cde", "denver", "lumada - edge", "lumada - ai", "lumada - analytics", "lumada - data science" "lumada - di", "lumada - hci", "hci", "lumada - foundry", "foundry", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
 
 class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     FUNCTION = "Function"
     # CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Sustaining" ]
-    FLOORS = {
-        "- Mobility": [
-            "Anderson, Vic",
-            "Kostadinov, Alex",
-            "Lin, Wayzen",
-            "Manjanatha, Sowmya",
-            "Maruca, Fran",
-            "Pfahl, Matt",
-            "Van Thong, Adrien",
-        ],
-
-
-        "- Content": [
-            "Boba, Andrew",
-            "Bronner, Mark",
-            "Burnham, John",
-            "Chestna, Wayne",
-            "Lee, Jonathan",
-            "Shea, Kevin",
-        ],
-
-        "- Aspen": [
-            "Hartford, Joe",
-            "Liang, Candy",
-        ],
-
-        "- HPP": [
-            "Wesley, Joe",
-            "Moore, Jim",
-        ],
-        "- HDID": [
-            "Agashe, Sujata",
-            "Caswell, Paul",
-            "Chappell, Simon",
-            "Gothoskar, Chandrashekhar",
-            "Helliker, Fabrice",
-            "Mason, Bill",
-            "Melville, Andrew",
-            "Pendlebury, Ian",
-            "Pfaff, Florian",
-            "Sinkar, Milind",
-        ],
-    }
+    # FLOORS = {
+    #     "- Mobility": [
+    #         #"Anderson, Vic",
+    #         "Kostadinov, Alex",
+    #         "Lin, Wayzen",
+    #         "Manjanatha, Sowmya",
+    #         "Maruca, Fran",
+    #         "Pfahl, Matt",
+    #         "Van Thong, Adrien",
+    #     ],
+    #
+    #
+    #     "- Content": [
+    #         "Boba, Andrew",
+    #         "Bronner, Mark",
+    #         "Burnham, John",
+    #         "Chestna, Wayne",
+    #         "Lee, Jonathan",
+    #         "Shea, Kevin",
+    #     ],
+    #
+    #     "- Aspen": [
+    #         "Hartford, Joe",
+    #         "Liang, Candy",
+    #     ],
+    #
+    #     "- HPP": [
+    #         "Wesley, Joe",
+    #         "Moore, Jim",
+    #     ],
+    #     "- HDID": [
+    #         "Agashe, Sujata",
+    #         "Caswell, Paul",
+    #         "Chappell, Simon",
+    #         "Gothoskar, Chandrashekhar",
+    #         "Helliker, Fabrice",
+    #         "Mason, Bill",
+    #         "Melville, Andrew",
+    #         "Pendlebury, Ian",
+    #         "Pfaff, Florian",
+    #         "Sinkar, Milind",
+    #     ],
+    # }
 
     TEAM_MODEL = {
         "Aspen" : "4 Tracks @ (1 PO, 3 Dev, 1 QA, 1 Char, 1 Auto)",
