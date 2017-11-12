@@ -15,7 +15,7 @@ class DrawChartSlide:
     MAX_HEIGHT_INCHES = Inches(5.63)
     PAGE_BUFFER = Inches(.2)
     RIGHT_EDGE = MAX_WIDTH_INCHES - PAGE_BUFFER
-    FOOTER_TOP = MAX_HEIGHT_INCHES - Inches(.45)
+    FOOTER_TOP = MAX_HEIGHT_INCHES - Inches(.5)
     FOOTER_LEFT = Inches(.7)
 
 
@@ -93,7 +93,7 @@ class DrawChartSlide:
         effectiveDateRun.font.bold = False
 
     def addFooter(self, aSlide, footerString, leftEdge=0):
-        footerTextBox = aSlide.shapes.add_textbox(leftEdge, DrawChartSlide.FOOTER_TOP, Inches(1), Inches(1))
+        footerTextBox = aSlide.shapes.add_textbox(leftEdge, DrawChartSlide.FOOTER_TOP, Inches(1), Inches(.5))
         footerTextFrame = footerTextBox.textframe
         p = footerTextFrame.add_paragraph()
         p.text = footerString
@@ -117,18 +117,22 @@ class DrawChartSlide:
 
         totalMembers = 0
         totalTBH = 0
+        totalUnfundedTBH = 0
         totalExpat = 0
         for aGroup in self.groupList:
             aGroup.build(slide)
             totalMembers += len(aGroup.memberShapeList)- aGroup.totalExpat - aGroup.totalTBH
             totalTBH += aGroup.totalTBH
             totalExpat += aGroup.totalExpat
+            totalUnfundedTBH += aGroup.totalUnfundedTBH
 
         footerString = ""
         if totalMembers:
             footerString = "|| HC:{}  ".format(totalMembers)
         if totalTBH:
             footerString += "||  TBH:{}  ".format(totalTBH)
+        if totalUnfundedTBH:
+            footerString += "||  UF:{}  ".format(totalUnfundedTBH)
         if totalExpat:
             footerString += "||  Expat:{}  ".format(totalExpat)
 
@@ -195,7 +199,9 @@ class PeopleGroup(object):
         self.groupLeft = left
         self.groupHeight = height
         self.totalTBH = 0
+        self.totalUnfundedTBH = 0
         self.totalExpat = 0
+
 
         self.memberLeft = self.groupLeft + MemberShapeDimensions.BUFFER_WIDTH
         self.memberTop = self.groupTop + GroupShapeDimensions.BUFFER_HEIGHT
@@ -339,7 +345,10 @@ class PeopleGroup(object):
             aPersonRect.setRGBFirstNameColor(RGBColor(255, 238, 0))
 
         if aPerson.isTBH():
-            self.totalTBH += 1
+            if aPerson.isUnfunded():
+                self.totalUnfundedTBH += 1
+            else:
+                self.totalTBH += 1
 
         if self.isFutureTBH(aPerson):
             aPersonRect.setBrightness(.4)

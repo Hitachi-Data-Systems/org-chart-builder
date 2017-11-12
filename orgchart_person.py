@@ -129,8 +129,7 @@ class SkeletonPerson:
         return False
 
     def isUnfunded(self):
-        if (self.getFullName().lower().startswith("unfunded")
-            or self.getFullName().lower().startswith("unfunded")):
+        if ("unfunded" in self.getFullName().lower()):
             return True
         return False
 
