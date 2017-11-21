@@ -121,7 +121,7 @@ class DrawChartSlide:
         totalExpat = 0
         for aGroup in self.groupList:
             aGroup.build(slide)
-            totalMembers += len(aGroup.memberShapeList)- aGroup.totalExpat - aGroup.totalTBH
+            totalMembers += len(aGroup.memberShapeList)- aGroup.totalExpat - aGroup.totalTBH - aGroup.totalUnfundedTBH
             totalTBH += aGroup.totalTBH
             totalExpat += aGroup.totalExpat
             totalUnfundedTBH += aGroup.totalUnfundedTBH
