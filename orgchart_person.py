@@ -226,7 +226,7 @@ class PersonRowWrapper(SkeletonPerson):
                 or (self.getProduct().lower() == self.peopleDataKeys.CROSS_FUNCT_TEAM.lower()))
 
     def getTitle(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LEVEL).strip()
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TITLE).strip()
 
     def getFunction(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.FUNCTION).strip()

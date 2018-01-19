@@ -7,11 +7,12 @@ class PeopleDataKeys:
     NAME = "HR Name"
     NICK_NAME = "Nickname"
     LEVEL = "Level"
+    TITLE = "Title"
     FUNCTION = "Function"
     PROJECT = "Project"
     FEATURE_TEAM = "Feature Team"
     TYPE = "Type"
-    REQ = "Requisition Number"
+    REQ = "Requisition"
     CONSULTANT = "Consultant"
     CONTRACTOR = "Contractor"
     EXPAT_TYPE = "Expat"
@@ -37,7 +38,6 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
 
-    LEVEL = "Title"
     TEAM_MODEL = {
     "UCP" : "1 Tracks @ (1 PO, 1 TA,  4 Dev, 1 QA, 2 Char, 2 Auto)",
     "HID" : "2 Tracks @ (1 PO, 5 Dev, 2 QA, 2 Auto, 1 UX)",
@@ -51,8 +51,6 @@ class PeopleDataKeysSantaClara(PeopleDataKeys):
 class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-    REQ = "Requisition"
-    LEVEL = "Title"
     TEAM_MODEL = {
             "HVS" : "[Forecast: Q1:20; Q2:26; Q3:29; Q4:34] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
             "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
@@ -133,8 +131,6 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
 class PeopleDataKeysSIBU(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-    REQ = "Requisition"
-    LEVEL = "Title"
     TEAM_MODEL = {
             "HVS" : "[Forecast: Q1:20; Q2:26; Q3:29; Q4:34] -- 1 Tracks @ (1 PO, 5 Dev, 1 QA, 1 Auto)",
             "HVS EM" : "2 Tracks @ (1 PO, 4 Dev, 1 QA, 1 Char, 1 Auto)",
