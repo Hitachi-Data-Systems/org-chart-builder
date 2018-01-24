@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os
 import orgchart_keys
-from orgchart_person import PersonRowWrapper
+from orgchart_person import EngineeringPersonRowWrapper
 
 from people_filter_criteria import ProductCriteria, FunctionalGroupCriteria, IsInternCriteria, IsExpatCriteria, \
     FeatureTeamCriteria, IsCrossFuncCriteria, ManagerCriteria, IsTBHCriteria, LocationCriteria, IsManagerCriteria, \
@@ -278,7 +278,7 @@ class SingleOrgParser(OrgParser):
         return self.peopleDataKeys.CROSS_FUNCT_TEAM
 
     def _getPerson(self, aRow):
-        aPerson = PersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
+        aPerson = EngineeringPersonRowWrapper(self.spreadsheetParser, self.peopleDataKeys, aRow)
         managerSet = MultiOrgParser.ManagerSet
 
         if (aPerson.getRawName() in managerSet

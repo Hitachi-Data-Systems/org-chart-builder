@@ -33,6 +33,11 @@ class LocationCriteria(KeyMatchesCriteria):
     def matches(self, aPerson):
         return self._matches(aPerson.getLocation())
 
+class CostCenterCriteria(KeyMatchesCriteria):
+    def matches(self, aPerson):
+        return self._matches(aPerson.getCostCenter())
+
+
 class ManagerCriteria(FilterCriteria):
     def __init__(self, manager):
         FilterCriteria.__init__(self)

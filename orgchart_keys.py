@@ -20,6 +20,7 @@ class PeopleDataKeys:
     INTERN_TYPE = "Intern"
     LOCATION = "Location"
     START_DATE = "Start Date"
+    COST_CENTER = "Cost Center"
 
     CROSS_FUNCTIONS = ["admin", "admin operations", "devops","inf", "infrastructure", "cross functional", "customer success", "technology",]
     CROSS_FUNCT_TEAM = "cross"
@@ -70,50 +71,6 @@ class PeopleDataKeysWaltham(PeopleDataKeysSIBU):
     def __init__(self):
         PeopleDataKeys.__init__(self)
     FUNCTION = "Function"
-    # CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Sustaining" ]
-    # FLOORS = {
-    #     "- Mobility": [
-    #         #"Anderson, Vic",
-    #         "Kostadinov, Alex",
-    #         "Lin, Wayzen",
-    #         "Manjanatha, Sowmya",
-    #         "Maruca, Fran",
-    #         "Pfahl, Matt",
-    #         "Van Thong, Adrien",
-    #     ],
-    #
-    #
-    #     "- Content": [
-    #         "Boba, Andrew",
-    #         "Bronner, Mark",
-    #         "Burnham, John",
-    #         "Chestna, Wayne",
-    #         "Lee, Jonathan",
-    #         "Shea, Kevin",
-    #     ],
-    #
-    #     "- Aspen": [
-    #         "Hartford, Joe",
-    #         "Liang, Candy",
-    #     ],
-    #
-    #     "- HPP": [
-    #         "Wesley, Joe",
-    #         "Moore, Jim",
-    #     ],
-    #     "- HDID": [
-    #         "Agashe, Sujata",
-    #         "Caswell, Paul",
-    #         "Chappell, Simon",
-    #         "Gothoskar, Chandrashekhar",
-    #         "Helliker, Fabrice",
-    #         "Mason, Bill",
-    #         "Melville, Andrew",
-    #         "Pendlebury, Ian",
-    #         "Pfaff, Florian",
-    #         "Sinkar, Milind",
-    #     ],
-    # }
 
     TEAM_MODEL = {
         "Aspen" : "4 Tracks @ (1 PO, 3 Dev, 1 QA, 1 Char, 1 Auto)",
@@ -146,8 +103,21 @@ class PeopleDataKeysSIBU(PeopleDataKeys):
                           "lumada - studio", "lumada - microservices", "optimized factory", "opf", "city data exchange",
                           "cde", "denver", "lumada - ai", "lumada - analytics", "lumada - di", "lumada - hci", "hci", "lumada - machine intelligence", "lumada", "cross", "lumada cross", "global"]
 
-class PeopleDataKeysHPP(PeopleDataKeys):
+class PeopleDataKeysFinance(PeopleDataKeys):
     def __init__(self):
         PeopleDataKeys.__init__(self)
-    FUNCTION = "Function"
-    #CROSS_FUNCTIONS = ["Technology", "DevOps", "Admin", "Seal" ]
+    MANAGER = "Manager Name"
+    NAME = "Last Name"
+    FIRST_NAME = "First Name"
+    LAST_NAME = "Last Name"
+    NICK_NAME = "Preferred Name"
+    TITLE = "Internal Job Title"
+    PROJECT = "Project"
+    TYPE = "Person Type"
+    REQ = "Requisition Number"
+    CONSULTANT = "Consultant"
+    CONTRACTOR = "Contractor"
+    EXPAT_TYPE = "Expat"
+    LOCATION = "Location Code"
+    START_DATE = "Start Date"
+    COST_CENTER = "GL"

@@ -34,7 +34,7 @@ class SpreadsheetParser:
         if aCell.value is None:
             return ""
 
-        return str(aCell.value).strip()
+        return u"{}".format(u"{}".format(aCell.value).strip())
 
     def getColByName(self, aRow, colName):
         colEntry = self.spreadsheetColumns.getColumn(colName)

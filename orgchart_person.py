@@ -1,4 +1,5 @@
 import datetime
+import re
 import dateutil.parser
 
 __author__ = 'David Oreper'
@@ -79,33 +80,31 @@ class SkeletonPerson:
         :param other:
         :return:
         """
-        #print "TODO: Checking {} || {}".format(self.getFullName(), other.getFullName())
         if not isinstance(other, SkeletonPerson):
-            #print "TODO : Different instances"
             return False
 
 
         # All TBHs have the same name so we assume each one is unique or they would all
         # get merged into 1
         if other.isTBH():
-            #print "TODO: other is TBH"
             return False
 
-        if self.getFullName() == other.getFullName():
+        if self.getFullName().lower() == other.getFullName().lower():
             return True
 
-        if self.getFullName() and (other.getFullName() == self.getFullName()):
-            return True
-        if self.getRawName() and (other.getRawName == self.getRawName()):
-            return True
-        if self.getNormalizedRawName() and (other.getNormalizedRawName == self.getNormalizedRawName()):
+        if self.getFullName() and (other.getFullName().lower() == self.getFullName().lower()):
             return True
 
-        if self.getRawNickName():
-            if other.getPreferredName() == self.getPreferredName():
+        if self.getRawName() and (other.getRawName().lower() == self.getRawName().lower()):
+            return True
+
+        if self.getNormalizedRawName() and (other.getNormalizedRawName().lower() == self.getNormalizedRawName().lower()):
+            return True
+
+        if self.getRawNickName().lower() or other.getRawNickName().lower():
+            if other.getPreferredName().lower() == self.getPreferredName().lower():
                 return True
 
-        #print "TODO: NO MATCH"
         return False
 
     def getFloors(self):
@@ -120,7 +119,7 @@ class SkeletonPerson:
         # Use the last name for hash so we can further compare collisions with the __eq__ algorithm and identify
         # people as the same if their fullname is different from their preferred name
         #print "TODO: HASH: {} - {}".format(self.getLastName(), hash(self.getLastName()))
-        return hash(self.getLastName())
+        return hash(self.getLastName().lower())
 
     def isTBH(self):
         if (self.getRawName().lower().startswith("tbh")
@@ -135,7 +134,7 @@ class SkeletonPerson:
 
 
 
-class PersonRowWrapper(SkeletonPerson):
+class EngineeringPersonRowWrapper(SkeletonPerson):
     def __init__(self, spreadsheetParser, peopleDataKeys, aRow):
 
         self.spreadsheetParser = spreadsheetParser
@@ -166,7 +165,7 @@ class PersonRowWrapper(SkeletonPerson):
         return self.manager
 
     def getReqNumber(self):
-        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.REQ).split(".")[0].strip()
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.REQ)
 
     def getFirstName(self, aName=None):
         if not aName:
@@ -187,17 +186,17 @@ class PersonRowWrapper(SkeletonPerson):
         return " ".join(aName.split(" ")[1:]).strip()
 
     def getFullName(self, fullName=None):
-        return "{} {}".format(self.getFirstName(fullName), self.getLastName(fullName)).strip()
+        return u"{} {}".format(self.getFirstName(fullName), self.getLastName(fullName)).strip()
 
     def getRawName(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NAME).strip()
 
     def getNormalizedRawName(self):
-        return "{} {}".format(self.getFirstName(self.getRawName()), self.getLastName(self.getRawName()))
+        return u"{} {}".format(self.getFirstName(self.getRawName()), self.getLastName(self.getRawName()))
 
     def getPreferredName(self):
         if self.getRawNickName():
-            return "{} {}".format(self.getRawNickName(), self.getLastName())
+            return u"{} {}".format(self.getRawNickName(), self.getLastName())
         return self.getFullName()
 
     def getRawNickName(self):
@@ -227,6 +226,9 @@ class PersonRowWrapper(SkeletonPerson):
 
     def getTitle(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.TITLE).strip()
+
+    def getLevel(self):
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LEVEL).strip()
 
     def getFunction(self):
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.FUNCTION).strip()
@@ -264,6 +266,21 @@ class PersonRowWrapper(SkeletonPerson):
             return ""
         return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LOCATION).strip() or ""
 
+    def getCostCenter(self):
+        if not self.spreadsheetParser.columnExists(self.peopleDataKeys.COST_CENTER):
+            return ""
+
+        rawCostCenter = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.COST_CENTER).strip()
+        rawCostCenter = rawCostCenter.replace(".", "-")
+        rawCostCenter.strip()
+
+        costCenterMatch = re.search('((\d+-?)+)', rawCostCenter)
+        costCenter = ""
+        if costCenterMatch:
+            costCenter = costCenterMatch.group(0)
+        return costCenter
+
+
     def getStartDate(self):
         """
 
@@ -275,20 +292,42 @@ class PersonRowWrapper(SkeletonPerson):
 
         startDateStr = self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.START_DATE).strip()
 
-        if startDateStr:
-            try:
-                return dateutil.parser.parse(startDateStr)
-            except ValueError:
-                print "Warning: can not parse start date for {}: '{}'".format(self.getFullName(), startDateStr)
+        if not startDateStr:
+            return dateutil.parser.parse("1/1/1900")
 
-        return datetime.datetime.min
+        try:
+            return dateutil.parser.parse(startDateStr)
+        except ValueError:
+            print "Warning: can not parse start date for {}: '{}'".format(self.getFullName(), startDateStr)
 
     def __str__(self):
-        personStr = "Person: {}, Product: {}, Location: {}".format(self.getFullName(), self.getProduct(), self.getLocation())
-        if self.isTBH():
-            personStr = "{} Req:{}".format(personStr, self.getReqNumber())
-        personStr = "{} Row: {}".format(personStr, self.aRow[00].row)
+        personStr = "Person: {}".format(self.getFullName())
         return personStr
 
     def __repr__(self):
         return self.__str__()
+
+class FinancePersonRowWrapper(EngineeringPersonRowWrapper):
+    def getFirstName(self, aName=None):
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.FIRST_NAME).strip()
+
+    def getLastName(self, aName=None):
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.LAST_NAME).strip()
+
+    def getRawName(self):
+        return u"{} {}".format(self.getFirstName(), self.getLastName())
+
+    def getPreferredName(self):
+        if self.getRawNickName():
+            return u"{} {}".format(self.getRawNickName(), self.getLastName())
+        return self.getFullName()
+
+    def getRawNickName(self):
+        return self.spreadsheetParser.getColValueByName(self.aRow, self.peopleDataKeys.NICK_NAME).strip()
+
+    def isConsultant(self):
+        """
+        :return:
+        """
+        title = self.getTitle()
+        return title.lower() == "contractor"
