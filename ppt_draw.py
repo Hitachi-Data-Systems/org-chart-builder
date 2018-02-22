@@ -571,7 +571,7 @@ class GenChartCommandline(TestCase):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         outputFileName = "{cwd}{slash}{dateStamp}_InsightOrgChart.pptx".format(cwd=os.getcwd(), slash=os.sep, dateStamp=todayDate)
         outputFileName = main(['Z:\doreper On My Mac\Documents\HCP Anywhere\Org Charts\Insight Group\SIBUEngStaff.xlsm',
-                               "-e", "-t", "-o {}".format(outputFileName)])
+                               "-e","-l", "-t", "-o {}".format(outputFileName)])
         os.system("start " + outputFileName)
 
     def testALLOrg(self):

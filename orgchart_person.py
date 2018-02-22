@@ -28,17 +28,17 @@ class SkeletonPerson:
         return " ".join(aName.split(" ")[1:]).strip()
 
     def getFullName(self, fullName=None):
-        return "{} {}".format(self.getFirstName(fullName), self.getLastName(fullName)).strip()
+        return u"{} {}".format(self.getFirstName(fullName), self.getLastName(fullName)).strip()
 
     def getRawName(self):
         return self.fullName
 
     def getNormalizedRawName(self):
-        return "{} {}".format(self.getFirstName(self.getRawName()), self.getLastName(self.getRawName()))
+        return u"{} {}".format(self.getFirstName(self.getRawName()), self.getLastName(self.getRawName()))
 
     def getPreferredName(self):
         if self.getRawNickName():
-            return "{} {}".format(self.getRawNickName(), self.getLastName())
+            return u"{} {}".format(self.getRawNickName(), self.getLastName())
         return self.getFullName()
 
     def getRawNickName(self):
@@ -301,7 +301,7 @@ class EngineeringPersonRowWrapper(SkeletonPerson):
             print "Warning: can not parse start date for {}: '{}'".format(self.getFullName(), startDateStr)
 
     def __str__(self):
-        personStr = "Person: {}".format(self.getFullName())
+        personStr = u"Person: {}".format(self.getFullName())
         return personStr
 
     def __repr__(self):

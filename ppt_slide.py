@@ -307,6 +307,7 @@ class PeopleGroup(object):
                 lastName = "(" + tbhParts[1]
 
         title = self._getTitle(aPerson)
+        #title = aPerson.getCostCenter()
 
         aPersonRect.setFirstName(firstName)
         aPersonRect.setNickName(aPerson.getRawNickName())
